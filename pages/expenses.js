@@ -1,20 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { graphql } from '@apollo/client/react/hoc';
-import { has, mapValues, omit, pick } from 'lodash';
+import {graphql} from '@apollo/client/react/hoc';
+import {has, mapValues, omit, pick} from 'lodash';
 import memoizeOne from 'memoize-one';
-import { defineMessages, FormattedMessage, injectIntl } from 'react-intl';
+import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import hasFeature, { FEATURES } from '../lib/allowed-features';
+import hasFeature, {FEATURES} from '../lib/allowed-features';
 import expenseStatus from '../lib/constants/expense-status';
 import expenseTypes from '../lib/constants/expenseTypes';
-import { PayoutMethodType } from '../lib/constants/payout-method';
-import { generateNotFoundError } from '../lib/errors';
-import { API_V2_CONTEXT, gqlV2 } from '../lib/graphql/helpers';
-import { Router } from '../server/pages';
+import {PayoutMethodType} from '../lib/constants/payout-method';
+import {generateNotFoundError} from '../lib/errors';
+import {API_V2_CONTEXT, gqlV2} from '../lib/graphql/helpers';
+import {Router} from '../server/pages';
 
-import { Sections } from '../components/collective-page/_constants';
+import {Sections} from '../components/collective-page/_constants';
 import CollectiveNavbar from '../components/CollectiveNavbar';
 import Container from '../components/Container';
 import ErrorPage from '../components/ErrorPage';
@@ -22,10 +22,10 @@ import ExpenseInfoSidebar from '../components/expenses/ExpenseInfoSidebar';
 import ExpensesFilters from '../components/expenses/ExpensesFilters';
 import ExpensesList from '../components/expenses/ExpensesList';
 import ExpenseTags from '../components/expenses/ExpenseTags';
-import { parseAmountRange } from '../components/expenses/filters/ExpensesAmountFilter';
-import { getDateRangeFromPeriod } from '../components/expenses/filters/ExpensesDateFilter';
-import { expensesListFieldsFragment } from '../components/expenses/graphql/fragments';
-import { Box, Flex } from '../components/Grid';
+import {parseAmountRange} from '../components/expenses/filters/ExpensesAmountFilter';
+import {getDateRangeFromPeriod} from '../components/expenses/filters/ExpensesDateFilter';
+import {expensesListFieldsFragment} from '../components/expenses/graphql/fragments';
+import {Box, Flex} from '../components/Grid';
 import Link from '../components/Link';
 import LoadingPlaceholder from '../components/LoadingPlaceholder';
 import MessageBox from '../components/MessageBox';
@@ -34,8 +34,9 @@ import PageFeatureNotSupported from '../components/PageFeatureNotSupported';
 import Pagination from '../components/Pagination';
 import SearchBar from '../components/SearchBar';
 import StyledHr from '../components/StyledHr';
-import { H1, H5 } from '../components/Text';
-import { withUser } from '../components/UserProvider';
+import {H1, H5} from '../components/Text';
+import {withUser} from '../components/UserProvider';
+import ExpensesBarChart from "../components/expenses/ExpensesBarChart";
 
 const messages = defineMessages({
   title: {
@@ -53,7 +54,7 @@ const SearchFormContainer = styled(Box)`
 const EXPENSES_PER_PAGE = 10;
 
 class ExpensePage extends React.Component {
-  static getInitialProps({ query }) {
+  static getInitialProps({query}) {
     const {
       parentCollectiveSlug,
       collectiveSlug,
@@ -92,6 +93,7 @@ class ExpensePage extends React.Component {
       type: PropTypes.string,
       tag: PropTypes.string,
       searchTerm: PropTypes.string,
+      periods: PropTypes.array
     }),
     /** from injectIntl */
     intl: PropTypes.object,
@@ -117,7 +119,7 @@ class ExpensePage extends React.Component {
   };
 
   componentDidUpdate(oldProps) {
-    const { LoggedInUser, data } = this.props;
+    const {LoggedInUser, data} = this.props;
     if (!oldProps.LoggedInUser && LoggedInUser) {
       if (LoggedInUser.canEditCollective(data.account) || LoggedInUser.isHostAdmin(data.account)) {
         data.refetch();
@@ -127,9 +129,9 @@ class ExpensePage extends React.Component {
 
   getPageMetaData(collective) {
     if (collective) {
-      return { title: this.props.intl.formatMessage(messages.title, { collectiveName: collective.name }) };
+      return {title: this.props.intl.formatMessage(messages.title, {collectiveName: collective.name})};
     } else {
-      return { title: `Expenses` };
+      return {title: `Expenses`};
     }
   }
 
@@ -146,31 +148,31 @@ class ExpensePage extends React.Component {
   }
 
   updateFilters = queryParams => {
-    return Router.pushRoute('expenses', this.buildFilterLinkParams({ ...queryParams, offset: null }));
+    return Router.pushRoute('expenses', this.buildFilterLinkParams({...queryParams, offset: null}));
   };
 
   handleSearch = searchTerm => {
-    const params = this.buildFilterLinkParams({ searchTerm, offset: null });
+    const params = this.buildFilterLinkParams({searchTerm, offset: null});
     Router.pushRoute('expenses', params);
   };
 
   getTagProps = tag => {
     if (tag === this.props.query.tag) {
-      return { type: 'info', closeButtonProps: true };
+      return {type: 'info', closeButtonProps: true};
     }
   };
 
   render() {
-    const { collectiveSlug, data, query } = this.props;
+    const {collectiveSlug, data, query} = this.props;
     const hasFilters = this.hasFilter(query);
 
     if (!data.loading) {
       if (data.error) {
-        return <ErrorPage data={data} />;
+        return <ErrorPage data={data}/>;
       } else if (!data.account || !data.expenses?.nodes) {
-        return <ErrorPage error={generateNotFoundError(collectiveSlug)} log={false} />;
+        return <ErrorPage error={generateNotFoundError(collectiveSlug)} log={false}/>;
       } else if (!hasFeature(data.account, FEATURES.RECEIVE_EXPENSES)) {
-        return <PageFeatureNotSupported />;
+        return <PageFeatureNotSupported/>;
       }
     }
 
@@ -180,7 +182,7 @@ class ExpensePage extends React.Component {
           collective={data.account}
           isLoading={!data.account}
           selected={Sections.BUDGET}
-          callsToAction={{ hasSubmitExpense: true }}
+          callsToAction={{hasSubmitExpense: true}}
         />
         <Container position="relative" minHeight={[null, 800]}>
           <Box maxWidth={1242} m="0 auto" px={[2, 3, 4]} py={[4, 5]}>
@@ -188,14 +190,14 @@ class ExpensePage extends React.Component {
               <Box flex="1 1 500px" minWidth={300} maxWidth={792} mr={[0, 3, 5]} mb={5}>
                 <Flex>
                   <H1 fontSize="32px" lineHeight="40px" mb={24} py={2} fontWeight="normal">
-                    <FormattedMessage id="section.expenses.title" defaultMessage="Expenses" />
+                    <FormattedMessage id="section.expenses.title" defaultMessage="Expenses"/>
                   </H1>
-                  <Box mx="auto" />
+                  <Box mx="auto"/>
                   <SearchFormContainer p={2}>
-                    <SearchBar defaultValue={query.searchTerm} onSubmit={this.handleSearch} />
+                    <SearchBar defaultValue={query.searchTerm} onSubmit={this.handleSearch}/>
                   </SearchFormContainer>
                 </Flex>
-                <StyledHr mb={26} borderWidth="0.5px" />
+                <StyledHr mb={26} borderWidth="0.5px"/>
                 <Box mb={34}>
                   {data.account ? (
                     <ExpensesFilters
@@ -204,7 +206,7 @@ class ExpensePage extends React.Component {
                       onChange={this.updateFilters}
                     />
                   ) : (
-                    <LoadingPlaceholder height={70} />
+                    <LoadingPlaceholder height={70}/>
                   )}
                 </Box>
                 {!data.loading && !data.expenses?.nodes.length ? (
@@ -226,11 +228,15 @@ class ExpensePage extends React.Component {
                         }}
                       />
                     ) : (
-                      <FormattedMessage id="expenses.empty" defaultMessage="No expenses" />
+                      <FormattedMessage id="expenses.empty" defaultMessage="No expenses"/>
                     )}
                   </MessageBox>
                 ) : (
                   <React.Fragment>
+                    <ExpensesBarChart
+                      isLoading={data.loading}
+                      expenses={data.expenses}
+                    />
                     <ExpensesList
                       isLoading={data.loading}
                       collective={data.account}
@@ -255,24 +261,24 @@ class ExpensePage extends React.Component {
                   isLoading={data.loading}
                   collective={data.account}
                   host={data.account?.host}
-                  tags={data.account?.expensesTags.map(({ tag }) => tag)}
+                  tags={data.account?.expensesTags.map(({tag}) => tag)}
                   showExpenseTypeFilters
                 >
                   <H5 mb={3}>
-                    <FormattedMessage id="Tags" defaultMessage="Tags" />
+                    <FormattedMessage id="Tags" defaultMessage="Tags"/>
                   </H5>
                   <ExpenseTags
                     isLoading={data.loading}
-                    expense={{ tags: data.account?.expensesTags.map(({ tag }) => tag) }}
+                    expense={{tags: data.account?.expensesTags.map(({tag}) => tag)}}
                     limit={30}
                     getTagProps={this.getTagProps}
                     data-cy="expense-tags-title"
                   >
-                    {({ key, tag, renderedTag, props }) => (
+                    {({key, tag, renderedTag, props}) => (
                       <Link
                         key={key}
                         route="expenses"
-                        params={this.buildFilterLinkParams({ tag: props.closeButtonProps ? null : tag })}
+                        params={this.buildFilterLinkParams({tag: props.closeButtonProps ? null : tag})}
                         data-cy="expense-tags-link"
                       >
                         {renderedTag}
@@ -289,7 +295,7 @@ class ExpensePage extends React.Component {
   }
 }
 
-const expensesPageQuery = gqlV2/* GraphQL */ `
+const expensesPageQuery = gqlV2/* GraphQL */`
   query ExpensesPage(
     $collectiveSlug: String!
     $limit: Int!
