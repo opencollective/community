@@ -47,11 +47,36 @@ key, history preserved.
 
 A member identity can be flagged as an **organization** — a nonprofit, a
 company, a sister collective. Entities join through the exact same
-application flow as people, hold roles like anyone, and their key works the
-same way. The flag changes rendering (no person avatar conventions) and is
-a prerequisite for the fiscal-host role ([money.md](money.md)). In the
+application flow as people, hold roles like anyone (including fiscal host —
+though individuals can hold that too, [money.md](money.md)), and their key
+works the same way. The flag changes rendering, nothing else. In the
 fractal model, another community's npub joining as a member is the same
 mechanism ([architecture/multi-tenancy.md](../architecture/multi-tenancy.md)).
+
+## Unclaimed accounts
+
+An unclaimed account is a full identity created *for* someone who hasn't
+asked for it — typically a grant issuer being recognized as a contributor
+([money.md](money.md) § source attribution), without bothering them to
+sign up or confirm an email.
+
+- **Creation**: by the admin, or by members whose action implies it
+  (a fiscal host attributing a credit creates the source's account
+  inline). Name, optional organization flag, optional icon; keypair
+  generated and encrypted like every identity.
+- **Control**: only the **creator and admins** can edit the profile — and
+  hand it over by setting or replacing the contact email at any time
+  before it is claimed. No one can log in as it; it can hold recognition
+  and roles but never opens sessions, signs only what its provenance
+  implies (nothing, in v1 — its events are about it, not by it).
+- **Claiming**: the creator or an admin binds an email → the person
+  verifies a 6-digit code → the account is **claimed**: they take control,
+  creator and admins lose their edit rights, and the identity continues —
+  same npub, same NIP-05, same contribution history. The standard upgrade
+  path, same as a follower becoming a member.
+- **Display**: unclaimed accounts are marked as such wherever they appear
+  (contributors page, members directory if given the member role), so
+  recognition is never mistaken for participation.
 
 ## External identities
 

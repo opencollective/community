@@ -67,5 +67,6 @@ case IDs.
 | [cases/tenancy.md](cases/tenancy.md) | TEN | multi-community servers, subgroups, graduation |
 | [cases/log.md](cases/log.md) | LOG | admin activity log |
 | [cases/money.md](cases/money.md) | MONEY | expenses, payments, fiscal hosts, treasury |
+| [cases/unclaimed.md](cases/unclaimed.md) | UNCL | unclaimed accounts: creation, control, claiming |
 
 Environment setup and commands: [environment.md](environment.md).

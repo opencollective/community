@@ -45,8 +45,8 @@ And a regular member's forged ledger entry is rejected and never indexed
 Given host A signs a credit "€840 · source: ticket sales (June meetup)"
 And a credit "€10,000 · source: Foundation Z · earmark: travel"
 Then the treasury shows A holding €10,840
-And "Foundation Z" and "ticket sales (June meetup)" appear as contributors
-(external identities, no login)
+And "Foundation Z" appears as a contributor via an unclaimed account (UNCL-01)
+And "ticket sales (June meetup)" appears as a plain-text aggregate contributor line
 And host A appears as a fiscal-host member, not as the donor of those amounts
 
 ### MONEY-08 — a host pays an expense like anyone, plus a debit
@@ -82,3 +82,30 @@ Then the treasury, contributors page and every expense timeline render identical
 Given host A signs a credit "€500 · source: Nonprofit A"
 Then €500 counts as A's own contribution on the contributors page
 And third-party-sourced credits never do
+
+### MONEY-14 — running balances reconcile like attestations
+Given a derived balance of €9,160 for host A
+When A signs a debit of €200 stating a running balance of €8,960
+Then the entry shows no discrepancy
+When A signs a credit of €100 stating a running balance of €9,500
+Then the €440 mismatch is displayed prominently on the entry and the treasury
+
+### MONEY-15 — proofs attach to entries and claims
+Given a member payment claim with a lightning receipt, a host debit with a
+tx hash, and a host credit with a Stripe charge id
+Then each renders its typed proof (explorer link for the tx hash)
+And entries and claims without proofs are equally valid
+And an unknown proof type is stored and rendered generically, not rejected
+
+### MONEY-16 — on-chain proof of funds
+Given host A attests 0.5 BTC with an address and a BIP-322 ownership signature
+Then communityd verifies the signature binds the address to A's npub
+And the treasury shows the attestation with a verified marker and explorer link
+And an attestation whose ownership signature fails verification is shown with
+an explicit failed-verification warning, never silently accepted
+
+### MONEY-17 — an individual can be a fiscal host
+Given regular member @carol (no organization flag) granted the fiscal host role
+Then her cash ledger works end to end: credit with plain-text source
+"cash jar — June meetup", a confirmed debit against an expense, an
+attestation with no proof — all valid and treasury-recognized
