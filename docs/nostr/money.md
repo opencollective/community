@@ -16,6 +16,7 @@ An expense is a thread in the Expenses channel
 |---|---|
 | title, description | what and why |
 | amount + currency | decimal string + ISO 4217 code or asset code (`EUR`, `USD`, `BTC`, `USDC`) |
+| tax breakdown | optional: tax amount + rate included in the total (e.g. €210 VAT at 21% inside €1,210) — fiscal hosts need it for their accounting |
 | category | optional; matches credit earmarks (below) |
 | receipt(s) | Blossom uploads |
 | payout method(s) | one or more of: `iban` (+ holder name, BIC), `bitcoin` address, `lightning` address, `eth`/stablecoin (chain + asset + address), `other` (free text) |

@@ -31,6 +31,12 @@ The protocol layer.
 - [channels.md](nostr/channels.md) — the typed channels framework: Proposals, Requests, Events, Expenses
 - [money.md](nostr/money.md) — expenses, payments, contributions, fiscal hosts, the treasury
 
+### [use-cases/](use-cases)
+End-to-end narratives exercising the specs with real names and amounts —
+each step cites the spec doc and test cases behind it. Start here to *feel*
+how the platform works: founding a collective, onboarding a fiscal host,
+a grant flowing through to a paid expense.
+
 ### [flows/](flows)
 Step-by-step product flows.
 

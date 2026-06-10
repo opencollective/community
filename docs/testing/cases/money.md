@@ -4,8 +4,9 @@ Flow reference: [nostr/money.md](../../nostr/money.md).
 Expenses inherit all CHAN-* behavior; these cases cover the money layer.
 
 ### MONEY-01 — an expense carries money fields; payout details are members-only
-Given member @dan submits an expense (€84.50, IBAN + lightning payout, receipt)
-Then the thread root carries amount, currency and payout tags, signed by dan
+Given member @dan submits an expense (€1,210 including €210 VAT at 21%, IBAN + lightning payout, receipt)
+Then the thread root carries amount, currency, tax-breakdown and payout tags, signed by dan
+And a tax amount not smaller than the total is rejected at submission
 And with the thread public, a visitor sees title, amount and status
 But payout details and the receipt render only for members — in the thread,
 the channel list, and every feed
