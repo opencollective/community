@@ -37,6 +37,13 @@ Step-by-step product flows.
 - [login.md](flows/login.md) — email-code login and web sessions
 - [roles.md](flows/roles.md) — default roles, permissions, badges
 
+### [testing/](testing)
+The behavioral contract, as plain-English test cases.
+
+- [README.md](testing/README.md) — how cases are written, cited by tests, and kept covered
+- [environment.md](testing/environment.md) — test environment setup and how to run the suites
+- [cases/](testing/cases) — one file per flow: setup, follow, join, login, chat, publishing, newsletter, roles, bunker, keys
+
 ### [operations/](operations)
 Running a server.
 
