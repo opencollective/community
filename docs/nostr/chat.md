@@ -5,6 +5,9 @@ The members-only, Discord-style channel on the homepage is a
 the community's own zooid relay. We implement almost none of it — zooid
 speaks NIP-29 natively; communityd is just a client.
 
+#general is the `chat`-type instance of the [channels framework](channels.md);
+thread channels (Proposals, Requests, …) are documented there.
+
 ## How it maps
 
 | product concept | protocol reality |
@@ -31,8 +34,9 @@ bunker URL sees the same channel — same history, same members — from outside
 the web UI. Moderation applies equally because it lives on the relay, not in
 our UI.
 
-## Future channels
+## More channels
 
-NIP-29 supports many groups per relay; "#general" is just the one created by
-default. Additional channels (per-role channels, project channels) are a
-roles-and-settings feature, not a protocol change.
+NIP-29 supports many groups per relay; #general is just the default one.
+Additional channels — including the thread-based Proposals and Requests and
+the planned Expenses/Resources/Products templates — are instances of the
+[channels framework](channels.md), not protocol changes.

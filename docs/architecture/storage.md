@@ -27,7 +27,8 @@ is Nostr-native (the relay holds the truth for those).
 | table | purpose |
 |---|---|
 | `settings` | community profile, domain, theme colors, posting policy, wrapped DEK, email provider config |
-| `identities` | one row per person and one for the community: username, email, role flags via `role_members`, npub, encrypted nsec, kind (member / follower / community), status |
+| `identities` | one row per person and one for the community: username, email, role flags via `role_members`, npub, encrypted nsec, kind (member / follower / external / community), status |
+| `channels` | channel registry: slug, name, type (chat / threads), template, enabled, read/post audiences, position |
 | `roles` | name, color, permission flags, `is_default`, `deletable` |
 | `role_members` | identity ↔ role |
 | `applications` | join requests: motivation, status, decided_by |
@@ -37,6 +38,7 @@ is Nostr-native (the relay holds the truth for those).
 | `bunker_sessions` | NIP-46 sessions ([bunker.md](bunker.md)) |
 | `newsletter_log` | which kind 30023 event was emailed when, to how many recipients — guarantees at-most-once sending |
 | `proposals_index` | cache of pending NIP-72 proposals/approvals for fast rendering; rebuildable from the relay |
+| `threads_index` | cache of thread roots, reply and reaction counts per channel for list rendering; rebuildable from the relay |
 
 Schema migrations are embedded in the binary and applied at startup
 (numbered SQL files, a `schema_version` pragma).
@@ -51,7 +53,7 @@ use in [backup](../operations/backup.md).
 
 ## What can be lost vs. rebuilt
 
-- `proposals_index` — rebuildable from the relay at any time.
+- `proposals_index`, `threads_index` — rebuildable from the relay at any time.
 - Relay events — exportable as JSONL; the member/approval audit trail lives
   here, so it is backed up, not treated as cache.
 - `identities.nsec` ciphertexts — **irreplaceable**. A lost DEK (lost master

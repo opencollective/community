@@ -27,6 +27,7 @@ The protocol layer.
 - [identities.md](nostr/identities.md) — member and community identities, NIP-05
 - [publishing.md](nostr/publishing.md) — posting as the community: NIP-72 proposals and approvals
 - [chat.md](nostr/chat.md) — the #general channel as a NIP-29 group
+- [channels.md](nostr/channels.md) — the typed channels framework: Proposals, Requests, future templates
 
 ### [flows/](flows)
 Step-by-step product flows.

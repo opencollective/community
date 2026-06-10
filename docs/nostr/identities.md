@@ -40,6 +40,18 @@ Created silently when someone follows with just an email:
 A follower can later apply to join; the same identity is upgraded — no new
 key, history preserved.
 
+## External identities
+
+Created when a non-member participates in a public channel (e.g. posting to
+the Requests channel, [channels.md](channels.md)) after verifying their email
+by code:
+
+- same key handling as every identity (generated, encrypted, bunker-held);
+- username auto-derived like followers; no kind 3 follow, no newsletter;
+- relay access scoped to the public channel groups they participate in;
+- notified of replies by email;
+- upgradeable to follower or member, keeping the same key.
+
 ## NIP-05
 
 `/.well-known/nostr.json?name=<username>` is served by communityd straight

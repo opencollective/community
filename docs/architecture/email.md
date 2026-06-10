@@ -43,6 +43,7 @@ surfaces the exact DNS records (SPF, DKIM) the wizard shows the operator.
 | Follow confirmation | someone follows with their email | confirm link/code (double opt-in — see [flows/follow.md](../flows/follow.md)) |
 | Newsletter | community publishes a kind 30023 blog post | the article, markdown rendered to HTML, with unsubscribe link |
 | Application decided | a join application is approved or declined | outcome + login link |
+| Thread reply notification | a reply lands on an external participant's thread ([channels](../nostr/channels.md)) | the reply + thread link; batched within a short window |
 
 ## Newsletter pipeline
 
