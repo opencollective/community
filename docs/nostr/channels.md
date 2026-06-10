@@ -23,12 +23,12 @@ communityd.
 
 ## Built-in channels
 
-| channel | type | template | who reads | who starts threads | default |
-|---|---|---|---|---|---|
-| #general | chat | — | members | members (chat) | on, cannot be disabled |
-| Proposals | threads | proposal | members | members | **on** |
-| Requests | threads | request | public | anyone with a verified email | **off** (admin enables — it opens a write surface to externals) |
-| Events | threads | event | public | members | **off** |
+| channel | type | template | default thread visibility | author may override? | who starts threads | default |
+|---|---|---|---|---|---|---|
+| #general | chat | — | members (chat is never public) | — | members (chat) | on, cannot be disabled |
+| Proposals | threads | proposal | members | no | members | **on** |
+| Requests | threads | request | public | yes | anyone with a verified email | **off** (admin enables — it opens a write surface to externals) |
+| Events | threads | event | public | yes | members | **off** |
 
 Admins toggle each non-#general channel in `/settings/community`. Disabling
 hides the tab and rejects writes; history stays on the relay and returns
@@ -80,13 +80,37 @@ policy is met ([decision 0010](../decisions/0010-channel-approvals-and-events.md
   always approves alone. Edits to a pending root reset approvals (new event
   id), declines are kind 1985 labels with a reason;
 - channel lists have a **status filter** (all / pending / approved). Members
-  see pending threads labeled as such; **visitors to public channels see
-  approved threads only** — which doubles as the anti-spam gate for
-  external Requests;
+  see pending threads labeled as such; **visitors see only threads that are
+  both approved and public** (next section) — which doubles as the
+  anti-spam gate for external Requests;
 - approval is what unlocks a template's side effects: events enter the
   calendar feed and the homepage, expenses become payable, and so on.
 
-## Events and the ICS feed
+## Thread visibility
+
+Every thread is either **public** or **members-only**
+([decision 0012](../decisions/0012-thread-visibility-split-feeds.md)):
+
+- the channel's settings define the **default visibility** for new threads
+  and **whether the author may override** it (see the built-ins table; both
+  knobs sit next to the channel's toggle and approval policy);
+- visibility is a `visibility` tag on the signed thread root, chosen on the
+  start-a-thread form when override is allowed;
+- **pending threads are never public** regardless of visibility — the
+  approval gate comes first; visibility takes effect at approval;
+- after approval, the author or an approver role can flip visibility with a
+  NIP-32 label (attributable, latest wins) — e.g. retract an event from
+  public view without deleting it;
+- visitors see approved + public threads; members see everything in
+  channels they can access. The relay itself remains members-scoped —
+  public visibility is communityd rendering, as everywhere.
+
+This applies to every template: a members-only expense next to a public
+one, a private proposal in an otherwise public channel, and so on.
+Announcements get the same choice at compose time
+([publishing.md](publishing.md) § content types).
+
+## Events and the calendar feeds
 
 The event template's thread roots are **NIP-52 calendar events** — kind
 31923 (time-based) or 31922 (all-day) — signed by the author with the
@@ -110,15 +134,22 @@ channel `h` tag, so calendar-aware Nostr clients understand them natively.
   your answer replaces the old one; the thread shows per-status counts and
   who's going. Members only.
 
-- **ICS feed**: `/channels/events.ics` serves all approved events as a
-  standard subscribable calendar (`text/calendar`); recurring events carry
-  their `RRULE` natively, so calendar apps handle expansion. Cancelling an
-  approved event (a label set by an approver role or the author) marks it
-  `CANCELLED` in the feed.
+- **Two ICS feeds** (`text/calendar`, RRULE carried natively so calendar
+  apps handle recurrence expansion):
+  - `/channels/events/public.ics` — approved **public** events, no
+    authentication;
+  - `/channels/events/members.ics?token=…` — approved events of **both**
+    visibilities, authenticated by a per-member secret token (calendar
+    apps can't send cookies — this is the private-URL pattern). Each member
+    gets their token from the Events channel's subscribe button; it is
+    regenerable, and revoked when membership ends.
+
+  Cancelling an approved event (a label set by an approver role or the
+  author) marks it `CANCELLED` in both feeds.
 - **Homepage**: an "Upcoming events" section appears when the Events
-  channel is enabled *and* at least one approved upcoming event exists
-  (for recurring events, the next occurrence is computed). It links the ICS
-  subscribe URL.
+  channel is enabled *and* at least one approved upcoming event is visible
+  to the viewer (public ones for visitors; all for members; recurring
+  events count by next occurrence). It links the matching ICS feed.
 - Replies and reactions work on event threads like any other.
 
 ## Reactions

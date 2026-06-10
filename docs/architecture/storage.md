@@ -44,7 +44,7 @@ every community — root collective or four-person circle.
 |---|---|
 | `settings` | community profile, domain, theme colors, posting policy, wrapped DEK, email provider config |
 | `identities` | one row per person and one for the community: username, email, role flags via `role_members`, npub, encrypted nsec, kind (member / follower / external / community), status |
-| `channels` | channel registry: slug, name, type (chat / threads), template, enabled, read/post audiences, approval policy (approver roles + required count), position |
+| `channels` | channel registry: slug, name, type (chat / threads), template, enabled, post audience, default thread visibility + override flag, approval policy (approver roles + required count), position |
 | `roles` | name, color, permission flags, `is_default`, `deletable` |
 | `role_members` | identity ↔ role |
 | `applications` | join requests: motivation, status, decided_by |
@@ -54,7 +54,8 @@ every community — root collective or four-person circle.
 | `bunker_sessions` | NIP-46 sessions ([bunker.md](bunker.md)) |
 | `newsletter_log` | which kind 30023 event was emailed when, to how many recipients — guarantees at-most-once sending |
 | `proposals_index` | cache of pending NIP-72 proposals/approvals for fast rendering; rebuildable from the relay |
-| `threads_index` | cache of thread roots, status (pending / approved), reply and reaction counts per channel for list rendering; rebuildable from the relay |
+| `threads_index` | cache of thread roots, status (pending / approved), visibility, reply and reaction counts per channel for list rendering; rebuildable from the relay |
+| `feed_tokens` | per-member secret tokens for the members ICS feed; regenerable, revoked with membership |
 
 Schema migrations are embedded in the binary and applied at startup
 (numbered SQL files, a `schema_version` pragma).

@@ -109,3 +109,19 @@ Given a pending thread
 When an approver declines it with a reason (kind 1985)
 Then it leaves the pending list, the author is notified (email for externals)
 And the author may revise and resubmit (new root, approvals reset)
+
+### CHAN-19 — channel visibility defaults and override lock
+Given the Events channel (default public, override allowed)
+Then the new-thread form offers a visibility choice defaulting to public
+And a member can create a members-only event
+Given the Proposals channel (default members, override locked)
+Then the form offers no visibility choice
+And a forged request with a `visibility: public` tag is rejected at submission
+
+### CHAN-20 — visibility gates rendering after approval
+Given an approved public thread and an approved members-only thread in the same channel
+Then a visitor sees only the public one (list and direct URL)
+And a member sees both
+And a pending public thread is invisible to visitors until approved
+When an approver flips the public thread to members-only (label)
+Then visitors lose access on next render, and the flip appears in /log

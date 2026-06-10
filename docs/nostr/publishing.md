@@ -12,7 +12,7 @@ Nostr events on the community's own relay
 
 | type | kind | published to | emailed |
 |---|---|---|---|
-| announcement | 1 | homepage | no |
+| announcement | 1 | homepage — public or members-only, chosen at compose ([channels.md](channels.md) § thread visibility) | no |
 | blog post | 30023 | homepage blog, `/posts/{slug}`, **RSS** (`/feed.xml`) | no |
 | newsletter | 30023 + a `newsletter` self-label (NIP-32 `l`/`L` tags on the event) | site archive + **email** to subscribed followers and members | yes |
 

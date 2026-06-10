@@ -22,20 +22,24 @@ Then dan's own approval does not count
 When steward @alice approves (kind 4550)
 Then the event is approved — and visible to logged-out visitors
 
-### EVT-04 — the ICS feed serves approved events
-Given approved, pending and declined events, one approved event recurring
-When `/channels/events.ics` is fetched (no authentication)
-Then the response is `text/calendar` with one VEVENT per approved event
+### EVT-04 — the public ICS feed serves approved public events
+(updated by ADR 0012: feeds split by visibility)
+Given approved public, approved members-only, pending and declined events,
+one approved public event recurring
+When `/channels/events/public.ics` is fetched (no authentication)
+Then the response is `text/calendar` with one VEVENT per approved **public** event
 (DTSTART, DTEND, SUMMARY, LOCATION, and RRULE for the recurring one)
-And pending and declined events are absent
-And the feed updates when a new event is approved
+And members-only, pending and declined events are absent
+And the feed updates when a new public event is approved
 
-### EVT-05 — homepage upcoming events section is conditional
-Given the Events channel disabled, or no approved upcoming events
-Then the homepage shows no events section
-Given it is enabled with one approved future event and one approved past event
-Then the section appears with only the future event, plus the ICS subscribe link
-And a recurring event with past start shows its next occurrence
+### EVT-05 — homepage upcoming events section is conditional and viewer-aware
+(updated by ADR 0012)
+Given the Events channel disabled, or no approved upcoming events visible to the viewer
+Then the homepage shows no events section for that viewer
+Given one approved upcoming members-only event and nothing public
+Then members see the section; visitors do not
+And a recurring event with past start counts by its next occurrence
+And the section links the public feed for visitors, the members feed for members
 
 ### EVT-06 — cancelling an approved event
 Given an approved upcoming event
@@ -71,3 +75,11 @@ external event page URL and a cover image uploaded to Blossom
 Then the thread and channel list render location, external link and cover
 And the ICS VEVENT carries the location (URL or address)
 And a non-http(s) external URL or oversized cover is rejected at submission
+
+### EVT-11 — the members ICS feed is token-authenticated and complete
+Given approved public and members-only events, and member @alice with a feed token
+When `/channels/events/members.ics?token=<alice's>` is fetched
+Then it contains both visibilities' approved events
+And a missing, wrong, or regenerated-away token gets an empty not-found response
+And regenerating the token on `/settings/apps` invalidates the old URL
+And the token of a removed member stops working

@@ -77,6 +77,12 @@ And it renders in the site archive
 And the email send is triggered (MAIL-01)
 And it does **not** appear in the blog's `/feed.xml`
 
+### PUB-15 — announcements carry visibility
+Given a published members-only announcement and a published public one
+Then visitors see only the public one on the homepage
+And members see both
+And the relay events carry the `visibility` tag chosen at compose
+
 ### PUB-14 — the RSS feed is valid and public
 Given published blog posts and pending proposals
 When `/feed.xml` is fetched without authentication
