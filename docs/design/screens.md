@@ -20,10 +20,11 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 
 | route | purpose | states |
 |---|---|---|
-| `/` | homepage: identity + linktree, follow/join/login, announcements, blog, channel tabs | visitor vs. member; visitors see locked tabs for member channels, open tabs for enabled public channels |
+| `/` | homepage: identity + linktree, follow/join/login, announcements, upcoming events (when enabled and non-empty), blog, channel tabs | visitor vs. member; visitors see locked tabs for member channels, open tabs for enabled public channels |
 | `/posts/{slug}` | one blog post | public |
 | `/channels/requests` | public thread channel (when enabled): request list and threads | replies/reactions require an identity |
-| `/channels/requests/new` | external request form: name, email, text → email code verification | unverified submissions never post |
+| `/channels/requests/new` | external request form: name, email, text → email code verification | unverified submissions never post; posted requests are pending until approved |
+| `/channels/events.ics` | subscribable ICS feed of approved events | public when the channel is public |
 | `/follow` | email-only follow | success = "check your inbox to confirm" |
 | `/join` | application form: name, username (live availability), email, motivation, newsletter opt-in | duplicate username/email errors inline |
 | `/login` | email → 6-digit code | unknown email gets the same UX (no account enumeration) |
@@ -34,7 +35,7 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 | route | purpose | states |
 |---|---|---|
 | `/` (logged in) | announcements + blog + channel tabs (#general chat, thread channels) | chat input disabled for muted members |
-| `/channels/{slug}` | thread channel list, rendered by the channel's template | members-only or public per channel config |
+| `/channels/{slug}` | thread channel list, rendered by the channel's template, with a status filter (all / pending / approved) | members-only or public per channel config; visitors see approved only |
 | `/channels/{slug}/new` | start a thread, form fields from the template | needs the channel's post audience |
 | `/channels/{slug}/{thread}` | thread view: root, replies, emoji reactions | reply/react per channel audience |
 | `/members` | searchable directory with role badges | live filter |
@@ -46,7 +47,7 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 | `/roles` | role list with member counts | manage needs `manage_roles` |
 | `/roles/{role}` | permissions toggles, member chips, rename/recolor | default roles not deletable |
 | `/settings/apps` | bunker URL generation, active sessions, revoke | per-identity |
-| `/settings/community` | profile, theme colors, posting policy, channel toggles, email provider, master password rotation, strict mode | admin only |
+| `/settings/community` | profile, theme colors, posting policy, channel toggles + per-channel approval policies (roles, required count), email provider, master password rotation, strict mode | admin only |
 | `/unlock` | master password prompt | exists only in strict mode after a restart; non-admins see a "temporarily locked" notice |
 
 ## Email-borne

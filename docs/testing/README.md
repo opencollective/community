@@ -56,7 +56,8 @@ case IDs.
 | [cases/join.md](cases/join.md) | JOIN | applications and membership approval |
 | [cases/login.md](cases/login.md) | LOGIN | email-code login, web sessions |
 | [cases/chat.md](cases/chat.md) | CHAT | #general messages and moderation |
-| [cases/channels.md](cases/channels.md) | CHAN | typed channels: Proposals, Requests, threads, reactions |
+| [cases/channels.md](cases/channels.md) | CHAN | typed channels: Proposals, Requests, threads, reactions, approval policies |
+| [cases/events.md](cases/events.md) | EVT | Events channel: template, ICS feed, homepage section |
 | [cases/publishing.md](cases/publishing.md) | PUB | announcements and blog posts: propose, approve, publish |
 | [cases/newsletter.md](cases/newsletter.md) | MAIL | email delivery: text + HTML, unsubscribe, at-most-once |
 | [cases/profile.md](cases/profile.md) | PROF | community profile edits: linktree, diffs, approval |

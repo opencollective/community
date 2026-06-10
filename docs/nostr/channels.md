@@ -28,10 +28,12 @@ communityd.
 | #general | chat | — | members | members (chat) | on, cannot be disabled |
 | Proposals | threads | proposal | members | members | **on** |
 | Requests | threads | request | public | anyone with a verified email | **off** (admin enables — it opens a write surface to externals) |
+| Events | threads | event | public | members | **off** |
 
 Admins toggle each non-#general channel in `/settings/community`. Disabling
 hides the tab and rejects writes; history stays on the relay and returns
-intact when re-enabled.
+intact when re-enabled. Every thread channel also has an **approval policy**
+(below), configured next to its toggle.
 
 ## Templates
 
@@ -48,17 +50,61 @@ A template defines everything type-specific about a thread channel:
 
 Planned templates (the framework contract they must fit):
 
-| template | structured fields | lifecycle | notes |
+| template | structured fields | template states (beyond pending / approved) | notes |
 |---|---|---|---|
 | proposal | title, body | open / closed | v1 |
 | request | author name, body (external author, email-verified) | open / answered / closed | v1 |
-| expense | amount, currency, receipt (Blossom blob) | submitted / approved / reimbursed | approval may reuse the quorum machinery of [publishing.md](publishing.md) |
+| event | title, start, end, timezone, location or URL, recurrence | cancelled | v1 — feeds the ICS calendar and the homepage (below) |
+| expense | amount, currency, receipt (Blossom blob) | reimbursed | approval = the channel's own policy below |
 | resource | category (room, vehicle, money, time, voucher, …), description, availability | available / lent / retired | offers *to* the community |
 | product / service | listing details, price | active / archived | replies double as reviews; a rating is a label on the reply |
+
+Every thread, in every template, shares the **pending → approved** baseline
+of the next section; the states above are layered on top of it.
 
 Adding a template is Go code (form, validator, renderer, labels) plus a
 settings toggle — no schema migration, no new protocol, no new ADR unless
 the template needs machinery the framework lacks.
+
+## Thread approval and status
+
+Every thread starts **pending** and becomes **approved** when its channel's
+policy is met ([decision 0010](../decisions/0010-channel-approvals-and-events.md)):
+
+- an approval is a **kind 4550** event signed by the approver, referencing
+  the thread root — the same event kind and audit-trail properties as
+  [community publishing](publishing.md), in a channel context (`h` tag);
+- the **policy is per channel**, configured in `/settings/community`: which
+  role(s) may approve, and how many approvals are required. Default:
+  **1 approval from a steward who is not the thread's author**; the admin
+  always approves alone. Edits to a pending root reset approvals (new event
+  id), declines are kind 1985 labels with a reason;
+- channel lists have a **status filter** (all / pending / approved). Members
+  see pending threads labeled as such; **visitors to public channels see
+  approved threads only** — which doubles as the anti-spam gate for
+  external Requests;
+- approval is what unlocks a template's side effects: events enter the
+  calendar feed and the homepage, expenses become payable, and so on.
+
+## Events and the ICS feed
+
+The event template's thread roots are **NIP-52 calendar events** — kind
+31923 (time-based) or 31922 (all-day) — signed by the author with the
+channel `h` tag, so calendar-aware Nostr clients understand them natively.
+NIP-52 covers start, end, timezone and location; recurrence is an `rrule`
+tag carrying an RFC 5545 subset (`FREQ`, `INTERVAL`, `UNTIL`/`COUNT`) — a
+pragmatic extension, ignored gracefully elsewhere.
+
+- **ICS feed**: `/channels/events.ics` serves all approved events as a
+  standard subscribable calendar (`text/calendar`); recurring events carry
+  their `RRULE` natively, so calendar apps handle expansion. Cancelling an
+  approved event (a label set by an approver role or the author) marks it
+  `CANCELLED` in the feed.
+- **Homepage**: an "Upcoming events" section appears when the Events
+  channel is enabled *and* at least one approved upcoming event exists
+  (for recurring events, the next occurrence is computed). It links the ICS
+  subscribe URL.
+- Replies and reactions work on event threads like any other.
 
 ## Reactions
 
@@ -76,6 +122,8 @@ Requests (and future public channels) accept threads from non-members:
 - an **external identity** is created — same key handling as followers
   ([identities.md](identities.md)), held by the bunker, added to *that
   channel's group only*;
+- their threads start pending like any other and become publicly visible
+  once approved per the channel's policy;
 - they are notified by email when their thread receives replies (they have
   no other way to know);
 - an external identity can be upgraded later — follow, or apply to join —
