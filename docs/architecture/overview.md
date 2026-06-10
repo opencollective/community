@@ -72,6 +72,15 @@ connect with `bunker://<pubkey>?relay=wss://your-community.org/relay&secret=…`
 the signing conversation travels through the community's own relay. No third
 party relays are required for anything.
 
+## Many communities, one server
+
+A server hosts any number of communities — each with its own hostname,
+virtual relay (zooid is multi-tenant by design), self-contained SQLite
+database, media namespace and encryption key. Subgroups of a community are
+themselves full communities, and a community can graduate to its own server
+by exporting its directory. See [multi-tenancy.md](multi-tenancy.md) — the
+conventions apply from the first PR even though v1 ships single-community.
+
 ## Why this shape
 
 See the ADRs: [Go + htmx single binary](../decisions/0001-go-htmx-single-binary.md),

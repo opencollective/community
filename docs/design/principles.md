@@ -50,7 +50,20 @@ it is deliberately the lowest-friction proof we support first. But the
 identity is the keypair; proof methods (email today, passkeys or SMS
 tomorrow) are pluggable and per-account.
 
-## 7. Decisions are written down
+## 7. Fractal by design — every group is whole
+
+Any server can host many collectives. Any collective eventually has
+subgroups — circles, working groups, chapters — and a subgroup is not a
+feature: it is a **full community**, with the same channels, proposals,
+requests, expenses, resources, newsletter, roles and its own database and
+keys. Collectives can be members of collectives, so the structure replicates
+like a fractal. And because every community is self-contained, a subgroup
+can graduate to its own server — a fork, not a migration — or an independent
+community can join a server as a subgroup. The atomic unit is the community;
+everything composes from there
+([architecture/multi-tenancy.md](../architecture/multi-tenancy.md)).
+
+## 8. Decisions are written down
 
 Anything we'd have to re-litigate later gets an ADR in
 [decisions/](../decisions). The wireframe-first, hi-fi-second, code-third

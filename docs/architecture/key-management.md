@@ -23,8 +23,12 @@ master password ──argon2id──► KEK (key encryption key, never stored)
   random nonce, and stored in the `identities` table as
   `nonce ‖ ciphertext ‖ tag`. The AAD binds the ciphertext to the identity row
   id, so ciphertexts cannot be swapped between rows.
-- The **DEK** is a random 32-byte key generated once at setup. It exists in
-  plaintext only in communityd's memory.
+- The **DEK** is a random 32-byte key generated when the community is
+  created — **one DEK per community**, wrapped by *that community's* admin
+  master password ([multi-tenancy](multi-tenancy.md)). It exists in
+  plaintext only in communityd's memory. Rotation, strict mode and unlock
+  are therefore per community: one community's lockout never pauses
+  another's signing, and a graduating community's keys travel with it.
 - The **KEK** is derived from the master password with argon2id
   (64 MiB memory, 3 iterations, random 16-byte salt). The wrapped DEK
   (`argon2 params ‖ salt ‖ nonce ‖ ciphertext`) is stored in the `settings`
@@ -46,8 +50,8 @@ immediately. Offered in `/settings/community`.
 [Decision 0004](../decisions/0004-auto-unlock-default-strict-optional.md):
 
 - **Auto-unlock (default)** — a second copy of the DEK is wrapped with a
-  machine key stored at `/opt/community/secrets/machine.key` (mode 0600,
-  owned by the service user). After a reboot, communityd unwraps the DEK
+  machine key stored at `/opt/community/communities/<slug>/secrets/machine.key`
+  (mode 0600, owned by the service user). After a reboot, communityd unwraps the DEK
   itself and signing resumes unattended. This protects against database
   exfiltration but not against an attacker with root on the machine.
 - **Strict mode (opt-in)** — no machine-wrapped copy exists. After a restart

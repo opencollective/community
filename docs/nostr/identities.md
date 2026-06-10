@@ -22,7 +22,7 @@ Created when a join application is **submitted** (so the application itself
 can be signed by the applicant's key — its first signature). Activated when
 approved. Properties:
 
-- username, unique per server, NIP-05 `username@<domain>`;
+- username, unique per community, NIP-05 `username@<community-domain>`;
 - kind 0 profile with their name (member-editable later);
 - kind 3 follow of the community npub;
 - usable from any Nostr app via the bunker.
@@ -60,7 +60,8 @@ from the `identities` table, with the community relay advertised in the
 
 ## Username rules
 
-Lowercase `a–z0–9_.-`, 2–30 chars, uniqueness case-insensitive. Reserved:
+Lowercase `a–z0–9_.-`, 2–30 chars, uniqueness case-insensitive **per
+community** (each community is its own namespace and NIP-05 domain). Reserved:
 `admin`, `community`, `_`, `root`, `www`, plus route names (`members`,
 `settings`, `posts`, `roles`, …).
 

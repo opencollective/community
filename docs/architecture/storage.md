@@ -1,28 +1,44 @@
 # Storage
 
-Everything lives under `/opt/community`. Two SQLite databases (one per
-process) and one media directory. No external database server.
+Everything lives under `/opt/community`. A thin server registry, **one
+self-contained SQLite database per community**
+([multi-tenancy](multi-tenancy.md)), zooid's own database, and one media
+directory. No external database server.
 
 ```
 /opt/community/
 ├── bin/
 │   ├── communityd
-│   └── zooid                  # pinned build, see operations/updating.md
+│   └── zooid                      # pinned build, see operations/updating.md
+├── server.db                      # registry: hostname → community, parent links
+├── communities/
+│   └── <slug>/                    # one self-contained directory per community
+│       ├── app.db                 # that community's database (WAL mode)
+│       └── secrets/
+│           └── machine.key        # per-community auto-unlock key (absent in strict mode)
 ├── data/
-│   ├── app.db                 # communityd (WAL mode)
-│   └── zooid/db               # relay events (zooid, WAL mode)
-├── media/                     # Blossom blobs, content-addressed by sha256
+│   └── zooid/db                   # relay events, one schema per community (zooid, WAL)
+├── media/<schema>/                # Blossom blobs per community, content-addressed
 ├── config/
-│   └── zooid/community.toml   # written by communityd, hot-reloaded by zooid
-├── secrets/
-│   └── machine.key            # auto-unlock wrap key (absent in strict mode)
-└── acme/                      # Let's Encrypt certificate cache
+│   └── zooid/<slug>.toml          # one virtual relay per community, hot-reloaded
+└── acme/                          # certificate cache, all hostnames
 ```
 
-## app.db (communityd)
+## server.db (registry)
+
+Holds no community content — only what the server needs to dispatch and
+navigate:
+
+| table | purpose |
+|---|---|
+| `communities` | slug, hostname, directory, parent (for subgroups), status |
+| `server_settings` | server-level config (ACME contact, platform defaults) |
+
+## app.db (one per community)
 
 Source of truth for accounts and configuration; an *index* for anything that
-is Nostr-native (the relay holds the truth for those).
+is Nostr-native (the relay holds the truth for those). Identical schema in
+every community — root collective or four-person circle.
 
 | table | purpose |
 |---|---|

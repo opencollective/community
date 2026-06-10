@@ -62,5 +62,6 @@ case IDs.
 | [cases/roles.md](cases/roles.md) | ROLE | roles, permissions, badges |
 | [cases/bunker.md](cases/bunker.md) | BUNKER | bunker URLs, NIP-46 sessions, external apps |
 | [cases/keys.md](cases/keys.md) | KEY | encryption, rotation, strict mode |
+| [cases/tenancy.md](cases/tenancy.md) | TEN | multi-community servers, subgroups, graduation |
 
 Environment setup and commands: [environment.md](environment.md).

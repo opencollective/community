@@ -8,6 +8,7 @@ Everything about how Community works and why it is built this way.
 How the system is put together.
 
 - [overview.md](architecture/overview.md) — the two processes, request routing, tech stack
+- [multi-tenancy.md](architecture/multi-tenancy.md) — the fractal model: many communities per server, subgroups as communities, graduation
 - [key-management.md](architecture/key-management.md) — envelope encryption, master password, rotation, unlock modes
 - [bunker.md](architecture/bunker.md) — the NIP-46 remote signer, sessions, bunker URLs
 - [storage.md](architecture/storage.md) — databases, media, file layout
