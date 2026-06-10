@@ -13,6 +13,7 @@ Created at setup, not deletable (rename/recolor allowed):
 | moderator | moderate #general | — |
 | member | (participation baseline: chat, see member pages) | on approved join |
 | follower | (newsletter only) | on confirmed follow |
+| fiscal host | hold funds | — granted by the admin to approved member entities ([money.md](../nostr/money.md)) |
 
 The **admin** is not a role but the account created at setup: it holds every
 permission implicitly and is the quorum shortcut ("admin alone, or 2
@@ -27,6 +28,7 @@ stewards"). Transferring or adding admins is a future ADR.
 | `approve_posts` | sign kind 4550 approvals; counts toward posting quorum |
 | `moderate_chat` | remove messages, mute members in #general |
 | `manage_roles` | create/edit roles, assign/remove members |
+| `hold_funds` | sign fiscal-host ledger entries recognized by the treasury ([money.md](../nostr/money.md)) |
 
 Permission checks happen at action time. Quorums always require **distinct**
 identities, and a proposer/applicant never counts toward their own quorum.

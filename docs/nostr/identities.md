@@ -43,6 +43,16 @@ Created silently when someone follows with just an email:
 A follower can later apply to join; the same identity is upgraded — no new
 key, history preserved.
 
+## Organizations (member entities)
+
+A member identity can be flagged as an **organization** — a nonprofit, a
+company, a sister collective. Entities join through the exact same
+application flow as people, hold roles like anyone, and their key works the
+same way. The flag changes rendering (no person avatar conventions) and is
+a prerequisite for the fiscal-host role ([money.md](money.md)). In the
+fractal model, another community's npub joining as a member is the same
+mechanism ([architecture/multi-tenancy.md](../architecture/multi-tenancy.md)).
+
 ## External identities
 
 Created when a non-member participates in a public channel (e.g. posting to

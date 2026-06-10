@@ -27,6 +27,7 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 | `/channels/events/public.ics` | subscribable ICS feed of approved **public** events | public |
 | `/channels/events/members.ics` | ICS feed of all approved events | requires `?token=` (per-member secret, regenerable) |
 | `/feed.xml` | RSS feed of published blog posts | public |
+| `/treasury` | balances per host/currency/earmark, recent ledger, expenses by status, contributors | public by default, toggleable members-only; payout details and receipts never shown publicly |
 | `/follow` | email-only follow | success = "check your inbox to confirm" |
 | `/join` | application form: name, username (live availability), email, motivation, newsletter opt-in | duplicate username/email errors inline |
 | `/login` | email → 6-digit code | unknown email gets the same UX (no account enumeration) |

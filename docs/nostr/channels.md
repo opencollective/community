@@ -29,6 +29,7 @@ communityd.
 | Proposals | threads | proposal | members | no | members | **on** |
 | Requests | threads | request | public | yes | anyone with a verified email | **off** (admin enables — it opens a write surface to externals) |
 | Events | threads | event | public | yes | members | **off** |
+| Expenses | threads | expense | members | yes | members | **off** (approval default: 2 stewards — [money.md](money.md)) |
 
 Admins toggle each non-#general channel in `/settings/community`. Disabling
 hides the tab and rejects writes; history stays on the relay and returns
@@ -55,7 +56,7 @@ Planned templates (the framework contract they must fit):
 | proposal | title, body | open / closed | v1 |
 | request | author name, body (external author, email-verified) | open / answered / closed | v1 |
 | event | title, start, end, timezone, place or online URL, external link, cover image, recurrence | cancelled | v1 — feeds the ICS calendar and the homepage (below); members RSVP |
-| expense | amount, currency, receipt (Blossom blob) | reimbursed | approval = the channel's own policy below |
+| expense | amount + currency, category, payout method(s), receipt(s) | paid | fully specced in [money.md](money.md); payout details and receipts are members-only regardless of thread visibility |
 | resource | category (room, vehicle, money, time, voucher, …), description, availability | available / lent / retired | offers *to* the community |
 | product / service | listing details, price | active / archived | replies double as reviews; a rating is a label on the reply |
 

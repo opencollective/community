@@ -59,7 +59,7 @@ When the operator completes step 6 with name, description and icon
 Then the community identity exists with a kind 0 profile on the relay
 And a kind 34550 community definition is published
 And the #general NIP-29 group exists
-And default roles steward, moderator, member, follower exist
+And default roles steward, moderator, member, follower, fiscal host exist
 And the admin holds the steward role and follows the community (kind 3)
 And the homepage renders the community profile
 

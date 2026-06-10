@@ -56,6 +56,8 @@ every community — root collective or four-person circle.
 | `proposals_index` | cache of pending NIP-72 proposals/approvals for fast rendering; rebuildable from the relay |
 | `threads_index` | cache of thread roots, status (pending / approved), visibility, reply and reaction counts per channel for list rendering; rebuildable from the relay |
 | `feed_tokens` | per-member secret tokens for the members ICS feed; regenerable, revoked with membership |
+| `ledger_index` | cache of fiscal-host ledger entries, derived balances per host × currency × earmark, attestation reconciliation; rebuildable from the relay |
+| `contributions_index` | cache of confirmed payments and attributed credit sources per contributor; rebuildable from the relay |
 
 Schema migrations are embedded in the binary and applied at startup
 (numbered SQL files, a `schema_version` pragma).

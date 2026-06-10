@@ -54,6 +54,7 @@ own domain.
 | 30023 | long-form article — blog posts; also proposals of articles | community npub / proposer |
 | 31922 / 31923 | NIP-52 calendar event — Events-channel thread roots | event author |
 | 31925 | NIP-52 RSVP — going / interested / not going | the responding member |
+| (app-defined) | fiscal-host ledger entry: credit / debit / balance attestation ([money.md](money.md)); kind number fixed at implementation after a registry scan | the fiscal host |
 | 34550 | NIP-72 community definition | community npub |
 | 8000/8001, 13534, 28934–28936 | zooid relay membership internals | relay / members |
 

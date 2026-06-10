@@ -59,8 +59,8 @@ blob). Then communityd:
 1. generates the community identity, publishes its kind 0 profile;
 2. publishes the NIP-72 community definition (kind 34550);
 3. creates the #general NIP-29 group;
-4. creates default roles (steward, moderator, member, follower) and assigns
-   the admin the steward role;
+4. creates default roles (steward, moderator, member, follower, fiscal
+   host) and assigns the admin the steward role;
 5. publishes the admin's kind 0 + kind 3 (following the community);
 6. redirects to the homepage. Done.
 

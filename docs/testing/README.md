@@ -66,5 +66,6 @@ case IDs.
 | [cases/keys.md](cases/keys.md) | KEY | encryption, rotation, strict mode |
 | [cases/tenancy.md](cases/tenancy.md) | TEN | multi-community servers, subgroups, graduation |
 | [cases/log.md](cases/log.md) | LOG | admin activity log |
+| [cases/money.md](cases/money.md) | MONEY | expenses, payments, fiscal hosts, treasury |
 
 Environment setup and commands: [environment.md](environment.md).
