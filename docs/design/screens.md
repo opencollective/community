@@ -20,7 +20,7 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 
 | route | purpose | states |
 |---|---|---|
-| `/` | homepage: identity, follow/join/login, announcements, blog, channel tabs | visitor vs. member; visitors see locked tabs for member channels, open tabs for enabled public channels |
+| `/` | homepage: identity + linktree, follow/join/login, announcements, blog, channel tabs | visitor vs. member; visitors see locked tabs for member channels, open tabs for enabled public channels |
 | `/posts/{slug}` | one blog post | public |
 | `/channels/requests` | public thread channel (when enabled): request list and threads | replies/reactions require an identity |
 | `/channels/requests/new` | external request form: name, email, text → email code verification | unverified submissions never post |
@@ -41,7 +41,8 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 | `/members/{username}` | profile: npub, badges, joined date | |
 | `/members/pending` | applications with motivation, approve/decline, vote progress | needs `approve_members` permission to act; visible to all members |
 | `/compose` | propose announcement (kind 1) or blog post (kind 30023) | needs `propose_posts`; markdown editor with preview |
-| `/posts/pending` | proposal queue with signed-approval trail | approve needs `approve_posts`; proposer cannot approve own |
+| `/profile/edit` | propose a community profile change: name, description, icon, links (add/remove/reorder) | any member; field-level diff in the pending queue |
+| `/posts/pending` | pending-posts queue with signed-approval trail: posts and profile edits | approve needs `approve_posts`; proposer cannot approve own |
 | `/roles` | role list with member counts | manage needs `manage_roles` |
 | `/roles/{role}` | permissions toggles, member chips, rename/recolor | default roles not deletable |
 | `/settings/apps` | bunker URL generation, active sessions, revoke | per-identity |

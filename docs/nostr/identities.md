@@ -6,7 +6,10 @@ generated on the server, held by the bunker, encrypted at rest.
 ## The community identity
 
 Created at setup step 6. Its kind 0 profile carries the community's name,
-description and icon (a Blossom URL on the same domain). It:
+description, icon (a Blossom URL on the same domain) and a `links` array
+rendered as the homepage linktree. Profile changes are proposed by any
+member and published through the approval quorum
+([publishing.md](publishing.md) § profile edits). It:
 
 - authors announcements (kind 1) and blog posts (kind 30023) — only through
   the approval quorum ([publishing.md](publishing.md));

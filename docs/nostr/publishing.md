@@ -76,6 +76,37 @@ what is about to be published in the community's name and by whom. This is
 deliberate transparency. (Steward-only drafts would need NIP-59 gift
 wrapping; see [nips.md](nips.md) "deliberately not used".)
 
+## Profile edits (the linktree)
+
+The community profile — name, description, icon, and an array of links
+(website, socials, budget page, …) rendered as the homepage linktree — is
+edited through this same machinery, with one difference in *who may propose*:
+**any member** can submit a profile edit request (no propose permission
+needed); approval follows the same policy and `approve_posts` permission.
+
+One protocol subtlety: kind 0 is a *replaceable* event, so a proposal must
+not be a bare kind 0 signed by the proposer — that would overwrite the
+proposer's own profile. Instead the proposal is a **wrapper**: a kind 30078
+(NIP-78 app data) event signed by the proposer, with the complete proposed
+profile JSON as content and tags `["k","0"]` + the community `a` tag.
+Approvals (kind 4550) and declines (kind 1985) reference the wrapper exactly
+as they do posts; on quorum the bunker constructs the new community kind 0
+from the approved JSON and signs it. The same wrapper pattern applies to any
+future proposal targeting a replaceable event.
+
+Rules:
+- editable fields are whitelisted: `name`, `about`, `picture`,
+  `links` (array of `{label, url}`, http(s) only, capped); everything else
+  in the community's kind 0 is server-managed;
+- the UI shows a field-level diff against the current profile, and pending
+  edits are flagged as stale if the profile changes under them (approvals
+  bind to exact content regardless);
+- publishing a profile edit does **not** trigger the newsletter.
+
+The `links` array lives in the kind 0 content — a pragmatic extension that
+NIP-39-aware clients ignore gracefully; platform identities that fit NIP-39
+(`i` tags) can be added alongside later.
+
 ## Interop
 
 Because proposals carry the NIP-72 `a` tag and approvals are standard kind

@@ -31,6 +31,11 @@ stewards"). Transferring or adding admins is a future ADR.
 Permission checks happen at action time. Quorums always require **distinct**
 identities, and a proposer/applicant never counts toward their own quorum.
 
+One deliberate exception: proposing a **community profile edit** (name,
+description, icon, links) requires no permission — any member may
+([publishing.md](../nostr/publishing.md) § profile edits). Approving one
+uses `approve_posts` as usual.
+
 ## Custom roles
 
 `/roles` → create: name, color, any subset of permissions. Useful both as

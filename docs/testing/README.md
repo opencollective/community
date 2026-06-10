@@ -59,6 +59,7 @@ case IDs.
 | [cases/channels.md](cases/channels.md) | CHAN | typed channels: Proposals, Requests, threads, reactions |
 | [cases/publishing.md](cases/publishing.md) | PUB | announcements and blog posts: propose, approve, publish |
 | [cases/newsletter.md](cases/newsletter.md) | MAIL | email delivery: text + HTML, unsubscribe, at-most-once |
+| [cases/profile.md](cases/profile.md) | PROF | community profile edits: linktree, diffs, approval |
 | [cases/roles.md](cases/roles.md) | ROLE | roles, permissions, badges |
 | [cases/bunker.md](cases/bunker.md) | BUNKER | bunker URLs, NIP-46 sessions, external apps |
 | [cases/keys.md](cases/keys.md) | KEY | encryption, rotation, strict mode |
