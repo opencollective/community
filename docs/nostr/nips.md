@@ -20,7 +20,7 @@ implemented (`communityd`, `zooid`, or both).
 | [42](https://github.com/nostr-protocol/nips/blob/master/42.md) | Relay auth | zooid | the relay is members-only for reads and writes |
 | [44](https://github.com/nostr-protocol/nips/blob/master/44.md) | Versioned encryption | communityd | NIP-46 transport (preferred) |
 | [46](https://github.com/nostr-protocol/nips/blob/master/46.md) | Remote signing | communityd | the bunker ([architecture/bunker.md](../architecture/bunker.md)) |
-| [52](https://github.com/nostr-protocol/nips/blob/master/52.md) | Calendar events | communityd | Events-channel thread roots (kinds 31922/31923), served as an ICS feed ([channels.md](channels.md)) |
+| [52](https://github.com/nostr-protocol/nips/blob/master/52.md) | Calendar events | communityd | Events-channel thread roots (kinds 31922/31923), RSVPs (kind 31925), served as an ICS feed ([channels.md](channels.md)) |
 | [72](https://github.com/nostr-protocol/nips/blob/master/72.md) | Moderated communities | communityd | proposal/approval flow for posting as the community ([publishing.md](publishing.md)) |
 | [86](https://github.com/nostr-protocol/nips/blob/master/86.md) | Relay management | zooid | communityd administers the relay (bans, membership) over localhost |
 | [98](https://github.com/nostr-protocol/nips/blob/master/98.md) | HTTP auth | zooid | authenticates Blossom uploads and NIP-86 calls |
@@ -53,6 +53,7 @@ own domain.
 | 24133 | NIP-46 request/response | bunker and client ephemeral keys |
 | 30023 | long-form article — blog posts; also proposals of articles | community npub / proposer |
 | 31922 / 31923 | NIP-52 calendar event — Events-channel thread roots | event author |
+| 31925 | NIP-52 RSVP — going / interested / not going | the responding member |
 | 34550 | NIP-72 community definition | community npub |
 | 8000/8001, 13534, 28934–28936 | zooid relay membership internals | relay / members |
 

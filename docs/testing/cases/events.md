@@ -47,3 +47,27 @@ And the thread remains readable with a cancelled badge
 Given an approved event
 Then members reply (kind 1111) and react (kind 7) as in CHAN-05/06
 And the reply count shows in the channel list
+
+### EVT-08 — members RSVP going / interested / not going
+Given an approved event
+When member @alice RSVPs "going"
+Then a kind 31925 event signed by alice references the event with status `accepted`
+And the thread shows per-status counts and who is going
+When alice changes to "interested"
+Then her RSVP is replaced (addressable d-tag), counts update, no duplicate
+And visitors and external identities cannot RSVP
+
+### EVT-09 — recurrence presets encode correct RRULEs
+Given events created with each preset
+Then "every Monday" yields `FREQ=WEEKLY;BYDAY=MO`
+And "every second Tuesday of the month" yields `FREQ=MONTHLY;BYDAY=2TU`
+And "does not repeat" (the default) yields no rrule tag
+And the ICS feed carries each RRULE verbatim
+And the homepage computes the correct next occurrence for each
+
+### EVT-10 — location, external link and cover image
+Given an online event (URL) and an in-person event (address), each with an
+external event page URL and a cover image uploaded to Blossom
+Then the thread and channel list render location, external link and cover
+And the ICS VEVENT carries the location (URL or address)
+And a non-http(s) external URL or oversized cover is rejected at submission

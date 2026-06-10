@@ -49,22 +49,39 @@ Then a kind 1985 `declined` label signed by bob's key references the proposal
 And the proposal shows as declined with the reason
 And @alice may revise and resubmit (fresh proposal, fresh approvals)
 
-### PUB-09 — a blog post follows the same flow and reaches the blog
-Given a kind 30023 blog-post proposal by @alice approved by @bob and @carol
+### PUB-09 — a blog post reaches the blog and the RSS feed, not inboxes
+(updated by ADR 0011)
+Given a kind 30023 blog-post proposal by @alice, approved per the blog policy
 Then the community publishes its own kind 30023 (community-owned d-tag, credit tags)
 And the post renders at `/posts/{slug}` and on the homepage blog section
-And the newsletter is triggered (MAIL-01)
+And it appears in `/feed.xml`
+And **no email is sent** (MAIL-04)
 
 ### PUB-10 — losing the role between approval and quorum invalidates the approval
 Given @bob approved, then lost the steward role
 When @carol's approval would complete quorum
 Then bob's approval no longer counts and the proposal stays pending ("1 of 2")
 
-### PUB-11 — policy is configurable
-Given the admin sets the policy to "any steward"
-Then a single steward approval publishes
-Given the policy "admin only"
-Then steward approvals never publish; only the admin can
+### PUB-11 — each section's policy is independent and configurable
+(updated by ADR 0011: per-section roles + count replace the single enum)
+Given announcements set to {steward} × 1 and newsletter left at its default {steward} × 2
+Then one steward approval publishes an announcement
+And one steward approval leaves a newsletter pending ("1 of 2")
+Given a section's approver roles set to none
+Then only the admin can publish it
+
+### PUB-13 — a newsletter is emailed and archived
+Given a newsletter proposal approved per the newsletter policy (2 stewards by default)
+Then the community publishes a kind 30023 carrying the `newsletter` self-label
+And it renders in the site archive
+And the email send is triggered (MAIL-01)
+And it does **not** appear in the blog's `/feed.xml`
+
+### PUB-14 — the RSS feed is valid and public
+Given published blog posts and pending proposals
+When `/feed.xml` is fetched without authentication
+Then it is valid RSS listing the published posts (title, link, date)
+And contains nothing pending and no newsletters
 
 ### PUB-12 — the trail is reconstructable from the relay alone
 Given a published announcement (PUB-04)

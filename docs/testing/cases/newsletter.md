@@ -3,14 +3,15 @@
 Flow reference: [architecture/email.md](../../architecture/email.md).
 All cases assert against the captured messages of the fake mailer.
 
-### MAIL-01 — a published blog post is emailed to opted-in recipients
+### MAIL-01 — a published newsletter is emailed to opted-in recipients
+(updated by ADR 0011: the trigger is the newsletter type, not blog posts)
 Given followers and members with confirmed emails and newsletter opt-in
-When the community publishes a kind 30023 blog post (PUB-09)
+When the community publishes a **newsletter** (PUB-13)
 Then each opted-in recipient receives exactly one email
 And recipients without opt-in, without confirmed email, or unsubscribed receive none
 
 ### MAIL-02 — the newsletter has correct text and HTML parts
-Given a blog post written in markdown (headings, links, bold, a list, an image)
+Given a newsletter written in markdown (headings, links, bold, a list, an image)
 Then the email contains a plain-text part with readable markdown-derived text
 And an HTML part with the rendered markdown (sanitized: scripts/iframes stripped)
 And both parts contain a link to `/posts/{slug}` and an unsubscribe link
@@ -21,12 +22,13 @@ Given any newsletter email
 Then it carries `List-Unsubscribe` and `List-Unsubscribe-Post` headers (RFC 8058)
 And the unsubscribe endpoint works without login (FOLLOW-06)
 
-### MAIL-04 — announcements are never emailed
-Given a published kind 1 announcement (PUB-04)
-Then no email is sent
+### MAIL-04 — announcements and blog posts are never emailed
+(updated by ADR 0011)
+Given a published announcement (PUB-04) and a published blog post (PUB-09)
+Then no email is sent for either
 
 ### MAIL-05 — sending is at-most-once
-Given a blog post whose newsletter was already sent
+Given a newsletter that was already sent
 When communityd restarts or the relay redelivers the event
 Then no recipient receives a duplicate
 

@@ -65,5 +65,6 @@ case IDs.
 | [cases/bunker.md](cases/bunker.md) | BUNKER | bunker URLs, NIP-46 sessions, external apps |
 | [cases/keys.md](cases/keys.md) | KEY | encryption, rotation, strict mode |
 | [cases/tenancy.md](cases/tenancy.md) | TEN | multi-community servers, subgroups, graduation |
+| [cases/log.md](cases/log.md) | LOG | admin activity log |
 
 Environment setup and commands: [environment.md](environment.md).

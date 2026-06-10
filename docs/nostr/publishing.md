@@ -5,6 +5,21 @@ community speak without the configured approvals. The whole trail is signed
 Nostr events on the community's own relay
 ([decision 0005](../decisions/0005-nip72-for-community-publishing.md)).
 
+## Content types
+
+`/compose` offers three types, each with its **own approval policy**
+([decision 0011](../decisions/0011-content-governance-rss-log.md)):
+
+| type | kind | published to | emailed |
+|---|---|---|---|
+| announcement | 1 | homepage | no |
+| blog post | 30023 | homepage blog, `/posts/{slug}`, **RSS** (`/feed.xml`) | no |
+| newsletter | 30023 + a `newsletter` self-label (NIP-32 `l`/`L` tags on the event) | site archive + **email** to subscribed followers and members | yes |
+
+The difference between a blog post and a newsletter is exactly one thing:
+the newsletter is sent by email. Blog posts are followed via RSS (or any
+Nostr client); the newsletter reaches inboxes.
+
 ## The flow
 
 ```
@@ -28,8 +43,8 @@ bunker signs the final event with the COMMUNITY key
   - tags: ["p", <author>, "", "author"], ["e", <proposal-id>, "", "mention"]
   - for 30023: fresh d-tag owned by the community
         │
-        ├──► homepage (announcements / blog)
-        ├──► email newsletter (kind 30023 only)
+        ├──► homepage (announcements / blog) + RSS (blog)
+        ├──► email (newsletter type only)
         └──► any Nostr client following the community
 ```
 
@@ -47,19 +62,24 @@ bunker signs the final event with the COMMUNITY key
   bunker; the bunker's only code path for community-key signatures runs the
   policy check first ([architecture/bunker.md](../architecture/bunker.md)).
 
-## Policy
+## Policies
 
-Stored in settings, edited at `/settings/community`:
+Every publishing section has its own policy, in the same shape as channel
+policies ([decision 0010](../decisions/0010-channel-approvals-and-events.md)):
+a set of approver role(s) plus a required count, edited at
+`/settings/community`. The admin alone is always sufficient; setting the
+approver roles to none makes a section admin-only.
 
-| option | meaning |
+| section | default policy |
 |---|---|
-| `admin` | only the admin publishes |
-| `admin_or_stewards(n)` | the admin alone, or `n` distinct steward approvals (default, n=2) |
-| `any_steward` | one steward approval suffices |
+| announcements | 1 steward |
+| blog posts | 1 steward |
+| newsletter | **2 stewards** — it reaches inboxes, the highest-blast-radius act |
+| profile edits | 2 stewards |
 
-Rules in all modes: the proposer's own approval doesn't count; an approval
-from someone who has lost the role between signing and quorum is re-checked
-at publish time.
+Rules in all policies: the proposer's own approval doesn't count; an
+approval from someone who has lost the role between signing and quorum is
+re-checked at publish time.
 
 ## Declines
 

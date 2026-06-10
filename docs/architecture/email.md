@@ -41,21 +41,23 @@ surfaces the exact DNS records (SPF, DKIM) the wizard shows the operator.
 |---|---|---|
 | Login / verification code | login, setup step 5, follow confirmation, join application | 6-digit code, 10 min expiry |
 | Follow confirmation | someone follows with their email | confirm link/code (double opt-in — see [flows/follow.md](../flows/follow.md)) |
-| Newsletter | community publishes a kind 30023 blog post | the article, markdown rendered to HTML, with unsubscribe link |
+| Newsletter | the community publishes a **newsletter** (kind 30023 with the newsletter label — blog posts are never emailed) | the article, markdown rendered to HTML, with unsubscribe link |
 | Application decided | a join application is approved or declined | outcome + login link |
 | Thread reply notification | a reply lands on an external participant's thread ([channels](../nostr/channels.md)) | the reply + thread link; batched within a short window |
 
 ## Newsletter pipeline
 
 1. communityd maintains a persistent subscription to the local relay for
-   kind 30023 events authored by the community npub.
+   kind 30023 events authored by the community npub that carry the
+   `newsletter` self-label ([publishing.md](../nostr/publishing.md) § content types).
 2. On a new event id not present in `newsletter_log`, render markdown → HTML
    (server-side, sanitized), select all identities with a confirmed email and
    newsletter opt-in, and send in batches with retry + backoff.
 3. Record progress per recipient batch in `newsletter_log` so a crash
    mid-send resumes without double-sending.
 
-Announcements (kind 1) are **not** emailed — only long-form content is
+Announcements and blog posts are **not** emailed — only newsletters are.
+Blog posts are followed via RSS at `/feed.xml`
 ([flows/follow.md](../flows/follow.md)).
 
 ## Deliverability notes

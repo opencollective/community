@@ -54,7 +54,7 @@ Planned templates (the framework contract they must fit):
 |---|---|---|---|
 | proposal | title, body | open / closed | v1 |
 | request | author name, body (external author, email-verified) | open / answered / closed | v1 |
-| event | title, start, end, timezone, location or URL, recurrence | cancelled | v1 — feeds the ICS calendar and the homepage (below) |
+| event | title, start, end, timezone, place or online URL, external link, cover image, recurrence | cancelled | v1 — feeds the ICS calendar and the homepage (below); members RSVP |
 | expense | amount, currency, receipt (Blossom blob) | reimbursed | approval = the channel's own policy below |
 | resource | category (room, vehicle, money, time, voucher, …), description, availability | available / lent / retired | offers *to* the community |
 | product / service | listing details, price | active / archived | replies double as reviews; a rating is a label on the reply |
@@ -91,9 +91,24 @@ policy is met ([decision 0010](../decisions/0010-channel-approvals-and-events.md
 The event template's thread roots are **NIP-52 calendar events** — kind
 31923 (time-based) or 31922 (all-day) — signed by the author with the
 channel `h` tag, so calendar-aware Nostr clients understand them natively.
-NIP-52 covers start, end, timezone and location; recurrence is an `rrule`
-tag carrying an RFC 5545 subset (`FREQ`, `INTERVAL`, `UNTIL`/`COUNT`) — a
-pragmatic extension, ignored gracefully elsewhere.
+
+- **When**: start, end, timezone (NIP-52 tags). **Recurrence is off by
+  default**; the form offers presets — weekly, monthly, yearly, *every
+  Monday/Tuesday/…*, and *every first/second/third/fourth Monday/… of the
+  month* — encoded as an `rrule` tag carrying an RFC 5545 subset (`FREQ`,
+  `INTERVAL`, `BYDAY` with ordinal prefixes like `1MO`…`4MO`,
+  `UNTIL`/`COUNT`). A pragmatic extension, ignored gracefully elsewhere;
+  the ICS feed carries it natively.
+- **Where**: either a physical place or an online URL (`location` tag) —
+  plus, in both cases, an optional **external event page URL** (`r` tag)
+  rendered as a link.
+- **Cover image** (optional): a Blossom upload in the NIP-52 `image` tag,
+  shown on the thread and the channel list.
+- **RSVP**: members signal *going / interested / not going* — a NIP-52
+  **kind 31925 RSVP** signed with their key (statuses
+  `accepted`/`tentative`/`declined`). 31925 is addressable, so changing
+  your answer replaces the old one; the thread shows per-status counts and
+  who's going. Members only.
 
 - **ICS feed**: `/channels/events.ics` serves all approved events as a
   standard subscribable calendar (`text/calendar`); recurring events carry

@@ -30,10 +30,12 @@ providers to junk the domain. One extra click protects both.
 
 ## The newsletter
 
-Every **kind 30023** (long-form blog post) published by the community npub is
-emailed to all identities with a confirmed email and newsletter opt-in —
-followers and members alike. Announcements (kind 1) stay on the homepage and
-the relay; they are not emailed. Pipeline and at-most-once guarantees:
+Every **newsletter** published by the community npub (long-form kind 30023
+marked as a newsletter — [publishing.md](../nostr/publishing.md) § content
+types) is emailed to all identities with a confirmed email and newsletter
+opt-in — followers and members alike. Announcements and regular blog posts
+are never emailed: blog posts are followed via **RSS** at `/feed.xml` or any
+Nostr client. Pipeline and at-most-once guarantees:
 [architecture/email.md](../architecture/email.md).
 
 Unsubscribe: RFC 8058 one-click header plus a footer link; either flips the

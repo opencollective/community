@@ -25,6 +25,7 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 | `/channels/requests` | public thread channel (when enabled): request list and threads | replies/reactions require an identity |
 | `/channels/requests/new` | external request form: name, email, text → email code verification | unverified submissions never post; posted requests are pending until approved |
 | `/channels/events.ics` | subscribable ICS feed of approved events | public when the channel is public |
+| `/feed.xml` | RSS feed of published blog posts | public |
 | `/follow` | email-only follow | success = "check your inbox to confirm" |
 | `/join` | application form: name, username (live availability), email, motivation, newsletter opt-in | duplicate username/email errors inline |
 | `/login` | email → 6-digit code | unknown email gets the same UX (no account enumeration) |
@@ -41,13 +42,14 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 | `/members` | searchable directory with role badges | live filter |
 | `/members/{username}` | profile: npub, badges, joined date | |
 | `/members/pending` | applications with motivation, approve/decline, vote progress | needs `approve_members` permission to act; visible to all members |
-| `/compose` | propose announcement (kind 1) or blog post (kind 30023) | needs `propose_posts`; markdown editor with preview |
+| `/compose` | propose an announcement, blog post or newsletter | needs `propose_posts`; markdown editor with preview; each type has its own approval policy |
 | `/profile/edit` | propose a community profile change: name, description, icon, links (add/remove/reorder) | any member; field-level diff in the pending queue |
 | `/posts/pending` | pending-posts queue with signed-approval trail: posts and profile edits | approve needs `approve_posts`; proposer cannot approve own |
 | `/roles` | role list with member counts | manage needs `manage_roles` |
 | `/roles/{role}` | permissions toggles, member chips, rename/recolor | default roles not deletable |
 | `/settings/apps` | bunker URL generation, active sessions, revoke | per-identity |
 | `/settings/community` | profile, theme colors, posting policy, channel toggles + per-channel approval policies (roles, required count), email provider, master password rotation, strict mode | admin only |
+| `/log` | activity log: every signed event rendered as a human-readable line, with a raw-JSON inspector per entry, category/author filters, pagination | **admin only** |
 | `/unlock` | master password prompt | exists only in strict mode after a restart; non-admins see a "temporarily locked" notice |
 
 ## Email-borne
