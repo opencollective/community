@@ -1,0 +1,78 @@
+/* Design tokens: docs/design/design-system.md. Accent/secondary are
+   injected per community once theming lands; these are the defaults. */
+:root {
+  --accent: #1869F5;
+  --accent-soft: color-mix(in srgb, var(--accent) 8%, white);
+  --accent-border: color-mix(in srgb, var(--accent) 25%, white);
+  --on-accent: #fff;
+  --secondary: #6F5AFA;
+  --ink: #141415;
+  --text-2: #4D4F51;
+  --text-3: #75777A;
+  --text-4: #9EA0A3;
+  --border: #EAEAEC;
+  --border-2: #DCDDE0;
+  --bg-page: #F9FAFB;
+  --bg-card: #FFFFFF;
+  --success: #0EA755;
+  --danger: #CC2955;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--bg-page);
+}
+h1 { font-size: 18px; font-weight: 500; letter-spacing: -0.2px; margin: 0 0 6px; }
+.sub { color: var(--text-3); font-size: 13px; margin: 0 0 16px; }
+.hint { color: var(--text-4); font-size: 12px; }
+.error { color: var(--danger); font-size: 13px; }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 430px;
+  margin: 28px auto;
+  padding: 26px 30px;
+}
+.wizard .steps { display: flex; gap: 6px; max-width: 430px; margin: 24px auto 0; }
+.wizard .dot { height: 4px; border-radius: 2px; flex: 1; background: var(--border); }
+.wizard .dot.on { background: var(--accent); }
+
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin: 16px 0 6px; }
+input, textarea, select {
+  width: 100%;
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 13px;
+}
+input:focus { outline: 2px solid var(--accent-border); border-color: var(--accent); }
+button, .btn {
+  display: inline-block;
+  border: 1px solid var(--border-2);
+  background: var(--bg-card);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 10px 18px;
+  font: inherit; font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 18px;
+}
+button[type=submit], .btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  width: 100%;
+}
+.hero { text-align: center; padding: 60px 20px; }
+.hero h1 { font-size: 24px; }
+.hero .actions { display: flex; gap: 10px; justify-content: center; align-items: center; }
+.link { color: var(--text-2); font-size: 13px; margin-top: 18px; }

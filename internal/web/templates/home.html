@@ -1,0 +1,11 @@
+{{template "head" .}}
+<main class="hero">
+  <h1>{{.Name}}</h1>
+  {{if .Description}}<p class="sub">{{.Description}}</p>{{end}}
+  <div class="actions">
+    <a class="btn primary" href="/follow">Follow</a>
+    <a class="btn" href="/join">Apply to join</a>
+    <a class="link" href="/login">Log in</a>
+  </div>
+</main>
+{{template "foot" .}}

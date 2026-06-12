@@ -18,8 +18,26 @@ One domain runs everything:
 
 ## Status
 
-Pre-alpha. We are documenting before building — start with
-[docs/README.md](docs/README.md).
+Pre-alpha, under active development. The docs were written first and are
+the contract — start with [docs/README.md](docs/README.md). Implemented so
+far: the storage layout (one SQLite per community, ADR 0009), envelope key
+encryption (ADR 0003/0004), identity generation, tenant resolution, and
+step 1 of the setup wizard.
+
+## Development
+
+Requires Go 1.26+ and gcc (CGO for SQLite).
+
+```sh
+make test       # unit tests
+make test-it    # integration tests (httptest harness)
+make test-all   # both + case-coverage check against docs/testing/cases
+make run        # build and serve on :8080 with ./data
+```
+
+Tests cite the plain-English cases in [docs/testing/cases](docs/testing/cases)
+by ID (e.g. `TestSETUP01_…`); `scripts/check-case-coverage.sh` keeps the
+mapping honest.
 
 ## Quick start (target experience)
 
