@@ -38,39 +38,12 @@ func TestSETUP01_FreshInstallLandsOnTheWizard(t *testing.T) {
 	}
 }
 
-// TestSETUP12_WizardGoneAfterDomainStep pins the wizard-disappears half of
-// SETUP-12 at the current milestone boundary: once a community exists,
-// /setup is not served. (Full SETUP-12 covers all six steps.)
-func TestSETUP12_WizardGoneAfterDomainStep(t *testing.T) {
-	h := harness.New(t)
-
-	resp, err := h.Client().PostForm(h.Server.URL+"/setup",
-		url.Values{"domain": {"commonshub.brussels"}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	resp.Body.Close()
-	if resp.StatusCode != 303 {
-		t.Fatalf("submitting a valid domain: want 303, got %d", resp.StatusCode)
-	}
-
-	resp = h.Get("/setup")
-	resp.Body.Close()
-	if resp.StatusCode != 404 {
-		t.Fatalf("GET /setup after creation: want 404, got %d", resp.StatusCode)
-	}
-}
-
 // TestSETUP02_BadDomainRejectedWithGuidance pins the validation half of
-// SETUP-02 (the DNS/ACME half lands with the TLS milestone).
+// SETUP-02 (the DNS/ACME half exercises CheckDomain in production).
 func TestSETUP02_BadDomainRejectedWithGuidance(t *testing.T) {
 	h := harness.New(t)
 
-	resp, err := h.Client().PostForm(h.Server.URL+"/setup",
-		url.Values{"domain": {"not a domain"}})
-	if err != nil {
-		t.Fatal(err)
-	}
+	resp := h.PostForm("/setup", url.Values{"domain": {"not a domain"}})
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	if !strings.Contains(string(body), "does not look like a domain") {

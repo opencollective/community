@@ -1,0 +1,31 @@
+{{template "head" .}}
+<main class="wizard">
+  <div class="steps">
+    {{range seq .Steps}}<div class="dot{{if le . $.Step}} on{{end}}"></div>{{end}}
+  </div>
+  <section class="card">
+    <h1>Verify it's you</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    {{if .Sent}}
+    <p class="sub">We sent a 6-digit code to <strong>{{.Email}}</strong>.</p>
+    <form method="post" action="/setup/verify">
+      <input type="hidden" name="email" value="{{.Email}}">
+      <label for="code">Enter the code</label>
+      <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" required autofocus>
+      <button type="submit">Verify</button>
+    </form>
+    <form method="post" action="/setup/verify" class="resend">
+      <input type="hidden" name="email" value="{{.Email}}">
+      <button type="submit" class="linklike">Send a new code</button>
+    </form>
+    {{else}}
+    <p class="sub">Where we send your login codes — never shown publicly.</p>
+    <form method="post" action="/setup/verify">
+      <label for="email">Your email address</label>
+      <input id="email" name="email" type="email" required value="{{.Email}}" autofocus>
+      <button type="submit">Send code</button>
+    </form>
+    {{end}}
+  </section>
+</main>
+{{template "foot" .}}

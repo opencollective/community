@@ -1,0 +1,15 @@
+{{template "head" .}}
+<main class="wizard">
+  <section class="card">
+    <h1>Unlock this server</h1>
+    <p class="sub">The server restarted. Enter the master password to resume
+    signing — public pages keep working meanwhile.</p>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/unlock">
+      <label for="password">Master password</label>
+      <input id="password" name="password" type="password" required autofocus>
+      <button type="submit">Unlock</button>
+    </form>
+  </section>
+</main>
+{{template "foot" .}}

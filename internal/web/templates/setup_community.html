@@ -1,0 +1,23 @@
+{{template "head" .}}
+<main class="wizard">
+  <div class="steps">
+    {{range seq .Steps}}<div class="dot{{if le . $.Step}} on{{end}}"></div>{{end}}
+  </div>
+  <section class="card">
+    <h1>Community profile</h1>
+    <p class="sub">The community gets its own Nostr identity with this
+    profile. Default roles are created: steward, moderator, member, follower,
+    fiscal host.</p>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/setup/community">
+      <label for="name">Community name</label>
+      <input id="name" name="name" type="text" required autofocus>
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="3"></textarea>
+      <label for="icon">Icon URL (optional)</label>
+      <input id="icon" name="icon" type="url" placeholder="https://…">
+      <button type="submit">Finish setup</button>
+    </form>
+  </section>
+</main>
+{{template "foot" .}}

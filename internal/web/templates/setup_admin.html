@@ -1,0 +1,19 @@
+{{template "head" .}}
+<main class="wizard">
+  <div class="steps">
+    {{range seq .Steps}}<div class="dot{{if le . $.Step}} on{{end}}"></div>{{end}}
+  </div>
+  <section class="card">
+    <h1>Your account</h1>
+    <p class="sub">A Nostr identity is generated for you. Its key never leaves
+    this server — you'll sign through it.</p>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/setup/admin">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" required value="{{.Username}}" autofocus>
+      <p class="hint">Your address will be <strong>{{.Username}}{{if not .Username}}you{{end}}@{{.Host}}</strong></p>
+      <button type="submit">Continue</button>
+    </form>
+  </section>
+</main>
+{{template "foot" .}}

@@ -72,6 +72,13 @@ button[type=submit], .btn.primary {
   color: var(--on-accent);
   width: 100%;
 }
+.check { display: flex; gap: 8px; align-items: baseline; font-weight: 400; color: var(--text-2); }
+.check input { width: auto; }
+.records { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+.records th, .records td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
+.mono { font-family: ui-monospace, monospace; font-size: 11px; word-break: break-all; }
+.linklike { background: none; border: none; color: var(--accent); padding: 0; margin-top: 10px; width: auto; cursor: pointer; }
+.resend { margin-top: 4px; }
 .hero { text-align: center; padding: 60px 20px; }
 .hero h1 { font-size: 24px; }
 .hero .actions { display: flex; gap: 10px; justify-content: center; align-items: center; }
