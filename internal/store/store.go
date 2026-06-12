@@ -69,6 +69,24 @@ func (s *Server) Close() error {
 	return s.db.Close()
 }
 
+// Slugs lists all community slugs on this server.
+func (s *Server) Slugs() ([]string, error) {
+	rows, err := s.db.Query(`SELECT slug FROM communities ORDER BY created_at`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var slug string
+		if err := rows.Scan(&slug); err != nil {
+			return nil, err
+		}
+		out = append(out, slug)
+	}
+	return out, rows.Err()
+}
+
 // CommunityCount reports how many communities exist on this server.
 func (s *Server) CommunityCount() (int, error) {
 	var n int

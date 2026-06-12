@@ -51,6 +51,16 @@ func main() {
 		log.Error("init web", "err", err)
 		os.Exit(1)
 	}
+	defer app.Close()
+
+	// Start NIP-46 bunkers for communities with a configured relay.
+	if slugs, err := s.Slugs(); err == nil {
+		for _, slug := range slugs {
+			if c, err := s.Community(slug); err == nil {
+				app.StartBunker(c)
+			}
+		}
+	}
 
 	if *prod {
 		runProd(s, app, *dataDir, log)

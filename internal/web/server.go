@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/opencollective/community/internal/auth"
+	"github.com/opencollective/community/internal/bunker"
 	"github.com/opencollective/community/internal/crypto"
 	"github.com/opencollective/community/internal/mail"
 	"github.com/opencollective/community/internal/store"
@@ -52,6 +53,10 @@ type App struct {
 
 	mailMu  sync.Mutex
 	mailers map[string]mail.Mailer // community slug -> configured mailer
+
+	baseCtx  context.Context
+	bunkerMu sync.Mutex
+	bunkers  map[string]*bunker.Service // community slug -> NIP-46 service
 }
 
 func New(s *store.Server, log *slog.Logger) (*App, error) {
@@ -78,7 +83,19 @@ func New(s *store.Server, log *slog.Logger) (*App, error) {
 		tmpl:          t,
 		keys:          newKeyring(),
 		mailers:       map[string]mail.Mailer{},
+		baseCtx:       context.Background(),
+		bunkers:       map[string]*bunker.Service{},
 	}, nil
+}
+
+// Close stops background services (bunker relay loops).
+func (a *App) Close() {
+	a.bunkerMu.Lock()
+	defer a.bunkerMu.Unlock()
+	for _, svc := range a.bunkers {
+		svc.Stop()
+	}
+	a.bunkers = map[string]*bunker.Service{}
 }
 
 type ctxKey int
@@ -137,6 +154,10 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /members", a.requireMember(a.membersPage))
 	mux.HandleFunc("GET /members/pending", a.requireMember(a.pendingPage))
 	mux.HandleFunc("POST /members/pending/{id}", a.requireMember(a.pendingDecide))
+
+	mux.HandleFunc("GET /settings/apps", a.requireUser(a.appsPage))
+	mux.HandleFunc("POST /settings/apps/url", a.requireUser(a.appsGenerateURL))
+	mux.HandleFunc("POST /settings/apps/revoke/{id}", a.requireUser(a.appsRevoke))
 
 	mux.HandleFunc("/", a.home)
 

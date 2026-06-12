@@ -1,0 +1,45 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Connected apps</h1>
+    <a href="/">Home</a>
+  </header>
+  <section class="card appcard">
+    <p class="sub">Use any Nostr app with your identity here. The app signs
+    through this server — your key never leaves it.</p>
+    {{if .HasRelay}}
+    <form method="post" action="/settings/apps/url">
+      <button type="submit">Generate bunker URL</button>
+    </form>
+    {{if .BunkerURL}}
+    <p class="mono" id="bunker-url">{{.BunkerURL}}</p>
+    <p class="hint">One-time secret, valid 10 minutes. Paste it into Coracle,
+    Flotilla, Amethyst or any NIP-46 app.</p>
+    {{end}}
+    {{else}}
+    <p class="hint">The relay is not configured yet — connecting external
+    apps becomes available once it is.</p>
+    {{end}}
+  </section>
+  <section class="card appcard">
+    <h2>Active sessions</h2>
+    <ul class="memberlist">
+      {{range .Sessions}}
+      <li>
+        <strong>{{.AppName}}</strong>
+        <span class="muted">{{.Client}} · connected {{.CreatedAt}} · last signed {{.LastUsed}}</span>
+        {{if .Revoked}}
+        <span class="pill">revoked</span>
+        {{else}}
+        <form method="post" action="/settings/apps/revoke/{{.ID}}" class="inline">
+          <button type="submit" class="secondary">Revoke</button>
+        </form>
+        {{end}}
+      </li>
+      {{else}}
+      <li class="muted">No connected apps yet.</li>
+      {{end}}
+    </ul>
+  </section>
+</main>
+{{template "foot" .}}

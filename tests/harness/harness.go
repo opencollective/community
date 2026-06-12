@@ -12,9 +12,13 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"regexp"
+	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/fiatjaf/eventstore/slicestore"
+	"github.com/fiatjaf/khatru"
 
 	"github.com/opencollective/community/internal/crypto"
 	"github.com/opencollective/community/internal/mail"
@@ -43,6 +47,12 @@ type H struct {
 	Clock   *Clock
 	// Admin is the logged-in admin client, set by CompleteSetup.
 	Admin *http.Client
+	// RelayURL is the in-process khatru relay (ws://…) standing in for
+	// zooid until that milestone. It survives h.Restart() — the relay is
+	// a separate process in production.
+	RelayURL string
+
+	relayServer *httptest.Server
 }
 
 // New boots a fresh server with an empty data directory.
@@ -54,8 +64,23 @@ func New(t *testing.T) *H {
 		Mailer:  NewFakeMailer(),
 		Clock:   &Clock{t: time.Date(2026, 6, 12, 12, 0, 0, 0, time.UTC)},
 	}
+	h.startRelay()
 	h.boot()
 	return h
+}
+
+func (h *H) startRelay() {
+	relay := khatru.NewRelay()
+	db := &slicestore.SliceStore{}
+	if err := db.Init(); err != nil {
+		h.T.Fatal(err)
+	}
+	relay.StoreEvent = append(relay.StoreEvent, db.SaveEvent)
+	relay.QueryEvents = append(relay.QueryEvents, db.QueryEvents)
+	relay.DeleteEvent = append(relay.DeleteEvent, db.DeleteEvent)
+	h.relayServer = httptest.NewServer(relay)
+	h.RelayURL = "ws" + strings.TrimPrefix(h.relayServer.URL, "http")
+	h.T.Cleanup(h.relayServer.Close)
 }
 
 func (h *H) boot() {
@@ -76,14 +101,23 @@ func (h *H) boot() {
 	ts := httptest.NewServer(app.Handler())
 
 	h.Store, h.App, h.Server = s, app, ts
-	h.T.Cleanup(func() { ts.Close(); s.Close() })
+	// As main.go does: start bunkers for communities with a relay.
+	if slugs, err := s.Slugs(); err == nil {
+		for _, slug := range slugs {
+			if c, err := s.Community(slug); err == nil {
+				app.StartBunker(c)
+			}
+		}
+	}
+	h.T.Cleanup(func() { app.Close(); ts.Close(); s.Close() })
 }
 
-// Restart simulates a process restart: same data directory, fresh process
-// state (keyring, caches). The fake mailer and clock persist, as the
-// outside world would.
+// Restart simulates a communityd restart: same data directory, fresh
+// process state (keyring, caches, bunker loops). The fake mailer, clock
+// and relay persist, as the outside world would.
 func (h *H) Restart() {
 	h.T.Helper()
+	h.App.Close()
 	h.Server.Close()
 	h.Store.Close()
 	h.boot()
@@ -167,6 +201,14 @@ func (h *H) CompleteSetup(strict bool) *http.Client {
 		"name": {"Commons Hub"}, "description": {"A space for commoners."},
 	}, 303)
 	h.Admin = client
+
+	// Wire the relay (production: the zooid milestone's wizard step does
+	// this) and start the bunker.
+	c := h.Community()
+	if err := c.SetSetting("relay_url", h.RelayURL); err != nil {
+		h.T.Fatal(err)
+	}
+	h.App.StartBunker(c)
 	return client
 }
 
