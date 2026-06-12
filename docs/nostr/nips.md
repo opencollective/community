@@ -61,6 +61,9 @@ own domain.
 ## Deliberately not used (yet)
 
 - **NIP-57 zaps** — payments are out of scope for v1.
+- **NIP-26 delegation** — deprecated and poorly supported; managed
+  accounts use a bunker-stamped `managed-by` tag instead
+  ([identities.md](identities.md) § managed accounts).
 - **NIP-59 gift wrap** — would make pending proposals steward-only at real
   complexity cost; member-visible proposals are a feature for now.
 - **NIP-65 relay lists** — identities publish theirs as the community relay;

@@ -28,7 +28,8 @@ Then only the latest email's code can claim it
 And codes sent to the replaced address are invalid
 
 ### UNCL-05 — unclaimed accounts and roles
+(updated by ADR 0015: hold_funds requires operable — claimed or managed)
 Given an unclaimed account granted the member role by the admin
 Then it appears in the members directory with the unclaimed badge
-And it gains no session, chat, or approval capability until claimed
-And granting it hold_funds is refused while unclaimed
+And it gains no session of its own, and no capability until claimed or managed
+And granting it hold_funds is refused while it has neither owner nor manager (MGD-07)

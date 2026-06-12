@@ -79,7 +79,9 @@ approver roles to none makes a section admin-only.
 
 Rules in all policies: the proposer's own approval doesn't count; an
 approval from someone who has lost the role between signing and quorum is
-re-checked at publish time.
+re-checked at publish time; and distinctness is computed over **effective
+actors** — an identity and its acting manager can never both count
+([identities.md](identities.md) § managed accounts).
 
 ## Declines
 

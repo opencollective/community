@@ -68,5 +68,6 @@ case IDs.
 | [cases/log.md](cases/log.md) | LOG | admin activity log |
 | [cases/money.md](cases/money.md) | MONEY | expenses, payments, fiscal hosts, treasury |
 | [cases/unclaimed.md](cases/unclaimed.md) | UNCL | unclaimed accounts: creation, control, claiming |
+| [cases/managed.md](cases/managed.md) | MGD | managed accounts: acting-as, provenance, quorum integrity |
 
 Environment setup and commands: [environment.md](environment.md).

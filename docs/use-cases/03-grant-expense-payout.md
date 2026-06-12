@@ -49,9 +49,10 @@ agreement names **Citizen Spring ASBL** — the Hub's fiscal host
 7. **Leen confirms reception** — she checks with the photographer that the
    money arrived, then signs the confirmation and marks the expense
    settled. The expense is **paid**. *(MONEY-03/04)*
-   > The photographer isn't a member; the filing member is the author and
-   > confirms on the strength of the payee's word. A future variant could
-   > let the payee confirm directly through an unclaimed account.
+   > Variant, now specced: Leen could instead create a **managed account**
+   > for the photographer and file the expense *as him* — author and
+   > confirmation both his npub, every action stamped "via @leen"
+   > ([identities.md](../nostr/identities.md) § managed accounts; MGD-02).
 8. **Everything reconciles, publicly.** `/treasury` shows: Citizen Spring
    holding €3,790, all of it on the *events* earmark ("€3,790 left of
    €5,000"); the ledger reads credit €5,000 / debit €1,210 with matching

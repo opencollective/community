@@ -14,8 +14,10 @@ recognizes ([nostr/money.md](../nostr/money.md)). What stands behind that
 npub is the host's own business:
 
 - **Simple form (start here):** Citizen Spring joins as an organization
-  member account, operated by its treasurer An, who logs in with her
-  email. One npub, one operator, zero ceremony.
+  member account, operated by its treasurer An — either she logs in with
+  her email, or, cleaner, she is a member herself **managing** the entity
+  account, so every ledger entry it signs is stamped "via @an"
+  ([identities.md](../nostr/identities.md) § managed accounts).
 - **Full form (graduate when needed):** Citizen Spring runs a collective
   of its own — its own Community (a tenant on the same server, or its own
   box), with its own members, roles, expense flow and activity log. Useful

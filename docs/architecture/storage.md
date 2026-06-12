@@ -47,6 +47,7 @@ every community — root collective or four-person circle.
 | `channels` | channel registry: slug, name, type (chat / threads), template, enabled, post audience, default thread visibility + override flag, approval policy (approver roles + required count), position |
 | `roles` | name, color, permission flags, `is_default`, `deletable` |
 | `role_members` | identity ↔ role |
+| `account_managers` | managed identity ↔ manager: granted-by, since, paused-on-claim state |
 | `applications` | join requests: motivation, status, decided_by |
 | `application_approvals` | who approved/declined which application |
 | `email_codes` | hashed 6-digit codes, purpose (login / verify / follow-confirm), expiry, attempts |

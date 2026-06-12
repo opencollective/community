@@ -42,7 +42,7 @@ Served over HTTP until step 1 completes; resumes at the first incomplete step.
 | `/channels/{slug}/new` | start a thread, form fields from the template, visibility selector when the channel allows override | needs the channel's post audience |
 | `/channels/{slug}/{thread}` | thread view: root, replies, emoji reactions | reply/react per channel audience |
 | `/members` | searchable directory with role badges | live filter |
-| `/members/{username}` | profile: npub, badges, joined date | |
+| `/members/{username}` | profile: npub, badges, joined date; managed accounts show the managed badge (public) and their managers (members-only) | account switcher for managers ("act as…", with persistent banner while active) |
 | `/members/pending` | applications with motivation, approve/decline, vote progress | needs `approve_members` permission to act; visible to all members |
 | `/compose` | propose an announcement, blog post or newsletter | needs `propose_posts`; markdown editor with preview; each type has its own approval policy |
 | `/profile/edit` | propose a community profile change: name, description, icon, links (add/remove/reorder) | any member; field-level diff in the pending queue |

@@ -78,6 +78,52 @@ sign up or confirm an email.
   (contributors page, members directory if given the member role), so
   recognition is never mistaken for participation.
 
+## Managed accounts
+
+Anyone can create an account *on behalf of* someone else — a member
+without a smartphone, a vendor, a donor — and act for it, with full
+provenance ([decision 0015](../decisions/0015-managed-accounts.md)).
+
+**Management is a relationship, not a credential.** `account_managers`
+records who manages which identity, who granted it, and since when. The
+creator of an on-behalf account is its first manager. Management is
+orthogonal to the claimed state: unclaimed accounts are typically managed;
+a *claimed* account can keep managers too — then the **owner** grants and
+revokes them (a member who can't use a smartphone daily can claim their
+account once, and keep a trusted neighbor as manager).
+
+**Acting as.** A manager, logged in as themselves, switches to the managed
+account (explicit banner in the UI). Every event the bunker signs for the
+managed account in that session carries a **`managed-by` tag with the
+manager's pubkey, stamped before signing** — so the provenance is inside
+the signed event: permanent, portable, rebuildable, rendered everywhere as
+"via @manager" and in `/log` as "@marie, acting for @photographer, …".
+The bunker refuses to sign for a managed account through anyone but an
+authorized manager's session. (NIP-26 delegation was considered and
+rejected: deprecated, poorly supported; the bunker is already the root of
+trust for every signature, so the stamped tag states the actual model.)
+
+**What a manager can do**: everyday actions — post, reply, react, RSVP,
+file expenses, confirm payment reception, sign ledger entries if the
+account holds `hold_funds`. **What a manager can never do**: claim the
+account, set or replace its claim email (creator/admin), add or remove
+other managers (owner/admin), or mint bunker URLs connecting external
+apps to its key.
+
+**Quorum integrity — one human, one vote.** For any approval quorum,
+distinctness is computed over *effective actors*: an identity counts only
+if neither it, nor its acting manager, nor another identity that manager
+acted through, already appears in the quorum as author or approver.
+Managing two steward accounts never yields two votes.
+
+**On claim**, management grants are paused; the new owner explicitly
+re-confirms each manager or the grant lapses.
+
+This also gives fiscal hosts their cleanest operating shape: the entity
+account (`citizenspring`) managed by its treasurer as herself, every
+ledger entry signed by the entity and attributed to the human via the
+`managed-by` tag.
+
 ## External identities
 
 Created when a non-member participates in a public channel (e.g. posting to
