@@ -1,0 +1,39 @@
+{{template "head" .}}
+<main class="wizard">
+  <section class="card">
+    {{if eq .Stage "done"}}
+    <h1>Application received</h1>
+    <p class="sub">It will be reviewed by the admin or two stewards — you'll
+    hear from us at <strong>{{.Email}}</strong>.</p>
+    {{else if eq .Stage "verify"}}
+    <h1>Confirm your application</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <p class="sub">We sent a 6-digit code to <strong>{{.Email}}</strong>.</p>
+    <form method="post" action="/join/verify">
+      <input type="hidden" name="email" value="{{.Email}}">
+      <label for="code">Enter the code</label>
+      <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" required autofocus>
+      <button type="submit">Confirm</button>
+    </form>
+    {{else}}
+    <h1>Apply to join</h1>
+    <p class="sub">Applications are reviewed by the admin or two existing
+    stewards.</p>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/join">
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text" required value="{{.Name}}" autofocus>
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" required value="{{.Username}}">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required value="{{.Email}}">
+      <label for="motivation">Who are you, and why do you want to join?</label>
+      <textarea id="motivation" name="motivation" rows="3" required>{{.Motivation}}</textarea>
+      <label class="check"><input type="checkbox" name="newsletter" value="1" checked>
+        Send me the community newsletter</label>
+      <button type="submit">Submit application</button>
+    </form>
+    {{end}}
+  </section>
+</main>
+{{template "foot" .}}

@@ -5,6 +5,7 @@ package harness
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
@@ -40,6 +41,8 @@ type H struct {
 	Server  *httptest.Server
 	Mailer  *FakeMailer
 	Clock   *Clock
+	// Admin is the logged-in admin client, set by CompleteSetup.
+	Admin *http.Client
 }
 
 // New boots a fresh server with an empty data directory.
@@ -163,6 +166,56 @@ func (h *H) CompleteSetup(strict bool) *http.Client {
 	post("/setup/community", url.Values{
 		"name": {"Commons Hub"}, "description": {"A space for commoners."},
 	}, 303)
+	h.Admin = client
+	return client
+}
+
+// Member creates an active member through the front door: a real
+// application, email verification, and an admin approval — then logs them
+// in. Extra roles are granted directly in the store (no roles UI yet).
+func (h *H) Member(username string, roles ...string) *http.Client {
+	h.T.Helper()
+	if h.Admin == nil {
+		h.T.Fatal("harness: CompleteSetup before Member")
+	}
+	email := username + "@example.org"
+	client := h.Client()
+	post := func(cl *http.Client, path string, v url.Values) {
+		h.T.Helper()
+		resp, err := cl.PostForm(h.Server.URL+path, v)
+		if err != nil {
+			h.T.Fatal(err)
+		}
+		resp.Body.Close()
+	}
+
+	post(client, "/join", url.Values{
+		"name": {username}, "username": {username}, "email": {email},
+		"motivation": {"harness fixture for " + username}, "newsletter": {"1"},
+	})
+	post(client, "/join/verify", url.Values{
+		"email": {email}, "code": {h.Mailer.LastCodeTo(email)},
+	})
+
+	c := h.Community()
+	app, err := c.OpenApplicationByEmail(email)
+	if err != nil {
+		h.T.Fatalf("harness: application for %s: %v", username, err)
+	}
+	post(h.Admin, fmt.Sprintf("/members/pending/%d", app.ID), url.Values{"decision": {"approve"}})
+
+	post(client, "/login", url.Values{"email": {email}})
+	post(client, "/login", url.Values{"email": {email}, "code": {h.Mailer.LastCodeTo(email)}})
+
+	ident, err := c.IdentityByUsername(username)
+	if err != nil {
+		h.T.Fatal(err)
+	}
+	for _, role := range roles {
+		if err := c.AssignRole(ident.ID, role); err != nil {
+			h.T.Fatal(err)
+		}
+	}
 	return client
 }
 

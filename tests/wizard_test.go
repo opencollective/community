@@ -194,8 +194,11 @@ func TestSETUP10_WrongCodesAreBounded(t *testing.T) {
 		resp.Body.Close()
 	}
 	// 5 wrong attempts invalidate the code: the right one now fails.
-	resp, _ := client.PostForm(h.Server.URL+"/setup/verify",
+	resp, err := client.PostForm(h.Server.URL+"/setup/verify",
 		url.Values{"email": {harness.AdminEmail}, "code": {code}})
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	if !strings.Contains(string(body), "wrong or expired") {
@@ -266,8 +269,11 @@ func TestLOGIN03_CodesExpire(t *testing.T) {
 	code := h.Mailer.LastCodeTo(harness.AdminEmail)
 
 	h.Clock.Advance(11 * time.Minute)
-	resp, _ := client.PostForm(h.Server.URL+"/setup/verify",
+	resp, err := client.PostForm(h.Server.URL+"/setup/verify",
 		url.Values{"email": {harness.AdminEmail}, "code": {code}})
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	if !strings.Contains(string(body), "wrong or expired") {

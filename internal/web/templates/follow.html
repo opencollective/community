@@ -1,0 +1,20 @@
+{{template "head" .}}
+<main class="wizard">
+  <section class="card">
+    <h1>Follow this community</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    {{if .Done}}
+    <p class="sub">Check your inbox to confirm — that's all.</p>
+    {{else}}
+    <p class="sub">We create a username and Nostr identity for you; it follows
+    the community. New blog posts and newsletters land in your inbox.
+    Unsubscribe anytime.</p>
+    <form method="post" action="/follow">
+      <label for="email">Email address</label>
+      <input id="email" name="email" type="email" required autofocus>
+      <button type="submit">Follow</button>
+    </form>
+    {{end}}
+  </section>
+</main>
+{{template "foot" .}}

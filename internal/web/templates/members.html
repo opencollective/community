@@ -1,0 +1,22 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Members</h1>
+    <form method="get" action="/members" class="inline">
+      <input type="search" name="q" placeholder="Filter members…" value="{{.Query}}">
+    </form>
+    <a href="/members/pending">Pending ({{.PendingCount}})</a>
+  </header>
+  <ul class="memberlist">
+    {{range .Members}}
+    <li>
+      <strong>{{if .Name}}{{.Name}}{{else}}{{.Username}}{{end}}</strong>
+      <span class="muted">@{{.Username}}</span>
+      {{range .Roles}}<span class="pill">{{.}}</span>{{end}}
+    </li>
+    {{else}}
+    <li class="muted">No members match.</li>
+    {{end}}
+  </ul>
+</main>
+{{template "foot" .}}

@@ -79,6 +79,18 @@ button[type=submit], .btn.primary {
 .mono { font-family: ui-monospace, monospace; font-size: 11px; word-break: break-all; }
 .linklike { background: none; border: none; color: var(--accent); padding: 0; margin-top: 10px; width: auto; cursor: pointer; }
 .resend { margin-top: 4px; }
+.page { max-width: 640px; margin: 0 auto; padding: 24px 20px; }
+.pagehead { display: flex; gap: 14px; align-items: baseline; }
+.pagehead h1 { flex: 1; }
+.inline { display: inline-flex; gap: 8px; align-items: center; }
+.inline input { width: auto; }
+.memberlist { list-style: none; padding: 0; }
+.memberlist li { display: flex; gap: 10px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.muted { color: var(--text-4); font-size: 13px; }
+.pill { font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+.appcard { max-width: none; margin: 14px 0; }
+.appcard blockquote { border-left: 2px solid var(--border); margin: 10px 0; padding: 2px 0 2px 12px; color: var(--text-2); }
+button.secondary { background: var(--bg-card); color: var(--ink); border-color: var(--border-2); width: auto; }
 .hero { text-align: center; padding: 60px 20px; }
 .hero h1 { font-size: 24px; }
 .hero .actions { display: flex; gap: 10px; justify-content: center; align-items: center; }

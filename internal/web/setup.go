@@ -234,11 +234,15 @@ func (a *App) setupAdminSubmit(w http.ResponseWriter, r *http.Request, c *store.
 	http.Redirect(w, r, "/setup/email", http.StatusSeeOther)
 }
 
-// createEncryptedIdentity generates the storage form of a new identity:
-// the nsec encrypted under the DEK, AAD-bound to the pubkey (KEY-06 — the
-// pubkey is immutable and known before the row id is).
+// encryptSecret produces the storage form of a private key: encrypted
+// under the DEK, AAD-bound to the pubkey (KEY-06 — the pubkey is immutable
+// and known before the row id is).
+func encryptSecret(dek []byte, kp identity.KeyPair) ([]byte, error) {
+	return crypto.Encrypt(dek, []byte(kp.SecretHex), []byte("nsec:"+kp.PublicHex))
+}
+
 func (a *App) createEncryptedIdentity(c *store.Community, dek []byte, kp identity.KeyPair, username string, isOrg bool) (*store.Identity, error) {
-	enc, err := crypto.Encrypt(dek, []byte(kp.SecretHex), []byte("nsec:"+kp.PublicHex))
+	enc, err := encryptSecret(dek, kp)
 	if err != nil {
 		return nil, err
 	}

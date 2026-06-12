@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/opencollective/community/internal/auth"
 	"github.com/opencollective/community/internal/crypto"
 	"github.com/opencollective/community/internal/mail"
 	"github.com/opencollective/community/internal/store"
@@ -82,7 +83,10 @@ func New(s *store.Server, log *slog.Logger) (*App, error) {
 
 type ctxKey int
 
-const communityKey ctxKey = 0
+const (
+	communityKey ctxKey = iota
+	identityKey
+)
 
 // communityFrom returns the request's resolved community, or nil during
 // first-run setup. Handlers must use this — never global state.
@@ -116,6 +120,23 @@ func (a *App) Handler() http.Handler {
 
 	mux.HandleFunc("GET /unlock", a.unlockPage)
 	mux.HandleFunc("POST /unlock", a.unlockSubmit)
+
+	mux.HandleFunc("GET /login", a.loginPage)
+	mux.HandleFunc("POST /login", a.loginSubmit)
+	mux.HandleFunc("POST /logout", a.logout)
+
+	mux.HandleFunc("GET /follow", a.followPage)
+	mux.HandleFunc("POST /follow", a.followSubmit)
+	mux.HandleFunc("GET /follow/confirm", a.followConfirm)
+
+	mux.HandleFunc("GET /join", a.joinPage)
+	mux.HandleFunc("POST /join", a.joinSubmit)
+	mux.HandleFunc("GET /join/check", a.joinCheck)
+	mux.HandleFunc("POST /join/verify", a.joinVerify)
+
+	mux.HandleFunc("GET /members", a.requireMember(a.membersPage))
+	mux.HandleFunc("GET /members/pending", a.requireMember(a.pendingPage))
+	mux.HandleFunc("POST /members/pending/{id}", a.requireMember(a.pendingDecide))
 
 	mux.HandleFunc("/", a.home)
 
@@ -156,6 +177,14 @@ func (a *App) resolveTenant(next http.Handler) http.Handler {
 			return
 		}
 		r = r.WithContext(context.WithValue(r.Context(), communityKey, c))
+
+		if cookie, cerr := r.Cookie("session"); cerr == nil {
+			if id, ok := auth.SessionIdentity(c, cookie.Value, a.Now()); ok {
+				if ident, ierr := c.IdentityByID(id); ierr == nil {
+					r = r.WithContext(context.WithValue(r.Context(), identityKey, ident))
+				}
+			}
+		}
 
 		if !strings.HasPrefix(r.URL.Path, "/setup") &&
 			!strings.HasPrefix(r.URL.Path, "/static/") && r.URL.Path != "/healthz" {

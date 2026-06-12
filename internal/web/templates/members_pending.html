@@ -1,0 +1,33 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Pending applications</h1>
+    <a href="/members">Back to members</a>
+  </header>
+  {{if eq .Error "already"}}<p class="error">You already decided on that application.</p>{{end}}
+  {{range .Apps}}
+  <section class="card appcard">
+    <strong>{{.Name}}</strong> <span class="muted">@{{.Username}}</span>
+    {{if .Newsletter}}<span class="pill">wants the newsletter</span>{{end}}
+    <blockquote>{{.Motivation}}</blockquote>
+    <p class="muted">
+      {{if .Approvals}}approved by {{.Approvers}} · {{.Approvals}} of 2 — one more
+      steward, or the admin{{else}}0 of 2 approvals{{end}}
+    </p>
+    {{if $.CanDecide}}
+    <form method="post" action="/members/pending/{{.ID}}" class="inline">
+      <input type="hidden" name="decision" value="approve">
+      <button type="submit">Approve</button>
+    </form>
+    <form method="post" action="/members/pending/{{.ID}}" class="inline">
+      <input type="hidden" name="decision" value="decline">
+      <input type="text" name="reason" placeholder="Reason (sent to the applicant)">
+      <button type="submit" class="secondary">Decline</button>
+    </form>
+    {{end}}
+  </section>
+  {{else}}
+  <p class="muted">Nothing waiting — all caught up.</p>
+  {{end}}
+</main>
+{{template "foot" .}}
