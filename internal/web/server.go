@@ -172,6 +172,11 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /members/pending", a.requireMember(a.pendingPage))
 	mux.HandleFunc("POST /members/pending/{id}", a.requireMember(a.pendingDecide))
 
+	mux.HandleFunc("GET /chat", a.requireMember(a.chatFragment))
+	mux.HandleFunc("POST /chat", a.requireMember(a.chatPost))
+	mux.HandleFunc("POST /chat/delete/{id}", a.requireMember(a.chatDelete))
+	mux.HandleFunc("POST /chat/mute/{username}", a.requireMember(a.chatMute))
+
 	mux.HandleFunc("GET /settings/apps", a.requireUser(a.appsPage))
 	mux.HandleFunc("POST /settings/apps/url", a.requireUser(a.appsGenerateURL))
 	mux.HandleFunc("POST /settings/apps/revoke/{id}", a.requireUser(a.appsRevoke))
@@ -262,10 +267,12 @@ func (a *App) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	desc, _ := c.Setting(setDescription)
+	viewer := identityFrom(r)
 	a.render(w, "home.html", map[string]any{
 		"Title":       name,
 		"Name":        name,
 		"Description": desc,
+		"IsMember":    viewer != nil && a.memberLevel(c, viewer),
 	})
 }
 

@@ -2,10 +2,19 @@
 <main class="hero">
   <h1>{{.Name}}</h1>
   {{if .Description}}<p class="sub">{{.Description}}</p>{{end}}
+  {{if .IsMember}}
+  <div class="actions">
+    <a class="btn primary" href="/chat"># general</a>
+    <a class="btn" href="/members">Members</a>
+    <a class="link" href="/settings/apps">Apps</a>
+  </div>
+  {{else}}
   <div class="actions">
     <a class="btn primary" href="/follow">Follow</a>
     <a class="btn" href="/join">Apply to join</a>
     <a class="link" href="/login">Log in</a>
   </div>
+  <p class="hint"># general is where members hang out — apply to join the conversation.</p>
+  {{end}}
 </main>
 {{template "foot" .}}

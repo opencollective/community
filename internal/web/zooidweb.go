@@ -51,7 +51,9 @@ func (a *App) dataRelayURLFor(c *store.Community) (string, bool) {
 	return a.publicURL(c, "ws", "/relay"), true
 }
 
-// syncZooid refreshes the community's zooid config from current settings.
+// syncZooid refreshes the community's zooid config from current settings
+// and roles: moderate_chat holders (and the admin) become can_manage
+// pubkeys so their NIP-29 moderation events carry their own signatures.
 func (a *App) syncZooid(c *store.Community) error {
 	if a.Zooid == nil {
 		return nil
@@ -60,11 +62,22 @@ func (a *App) syncZooid(c *store.Community) error {
 	if err != nil {
 		return err
 	}
+	managers, err := c.PubkeysWithPermission(store.PermModerateChat)
+	if err != nil {
+		return err
+	}
+	if _, admin, err := a.adminIdentity(c); err == nil {
+		managers = append(managers, admin.Pubkey)
+	}
 	name, _ := c.Setting(setName)
 	desc, _ := c.Setting(setDescription)
 	icon, _ := c.Setting(setIcon)
-	return a.Zooid.WriteConfig(c, community.Pubkey, name, desc, icon)
+	return a.Zooid.WriteConfig(c, community.Pubkey, name, desc, icon, managers)
 }
+
+// ResyncZooid is the exported hook for role changes (the harness and the
+// future roles UI call it).
+func (a *App) ResyncZooid(c *store.Community) error { return a.syncZooid(c) }
 
 func (a *App) communityIdentity(c *store.Community) (*store.Identity, error) {
 	idStr, err := c.Setting(setCommunityID)
@@ -162,6 +175,67 @@ func (a *App) publishCommunityEvents(c *store.Community) {
 	)
 	if err != nil {
 		a.Log.Error("publish community events", "err", err)
+	}
+}
+
+// generalGroup is the slug (NIP-29 `h` tag) of the default chat channel.
+const generalGroup = "general"
+
+// createGeneralChannel publishes the #general NIP-29 group: created and
+// marked private+closed by the community identity, with the admin as its
+// first member (SETUP-11).
+func (a *App) createGeneralChannel(c *store.Community) {
+	p, ok := a.publisher(c)
+	if !ok {
+		return
+	}
+	ctx, cancel := context.WithTimeout(a.baseCtx, publishTimeout)
+	defer cancel()
+	community, err := a.communityIdentity(c)
+	if err != nil {
+		a.Log.Error("create #general: community identity", "err", err)
+		return
+	}
+	claim, err := a.claim(ctx, c, p)
+	if err != nil {
+		a.Log.Error("create #general: claim", "err", err)
+		return
+	}
+	_, admin, err := a.adminIdentity(c)
+	if err != nil {
+		a.Log.Error("create #general: admin", "err", err)
+		return
+	}
+	err = p.PublishAs(ctx, community, claim,
+		publish.GroupCreateEvent(generalGroup, a.Now()),
+		publish.GroupMetadataEvent(generalGroup, "general",
+			"The community's living room.", true, true, a.Now()),
+		publish.GroupPutUserEvent(generalGroup, admin.Pubkey, a.Now()),
+	)
+	if err != nil {
+		a.Log.Error("create #general", "err", err)
+	}
+}
+
+// addToGeneral grants a member access to #general (JOIN-05, CHAT-07).
+func (a *App) addToGeneral(c *store.Community, ident *store.Identity) {
+	p, ok := a.publisher(c)
+	if !ok {
+		return
+	}
+	ctx, cancel := context.WithTimeout(a.baseCtx, publishTimeout)
+	defer cancel()
+	community, err := a.communityIdentity(c)
+	if err != nil {
+		return
+	}
+	claim, err := a.claim(ctx, c, p)
+	if err != nil {
+		return
+	}
+	if err := p.PublishAs(ctx, community, claim,
+		publish.GroupPutUserEvent(generalGroup, ident.Pubkey, a.Now())); err != nil {
+		a.Log.Error("add to #general", "username", ident.Username, "err", err)
 	}
 }
 

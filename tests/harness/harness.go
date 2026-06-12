@@ -302,18 +302,13 @@ func (h *H) CompleteSetup(strict bool) *http.Client {
 	return client
 }
 
-// QueryRelayAs reads events from the data relay as an identity, through
-// the full production path (proxy, NIP-42 auth, membership join).
-func (h *H) QueryRelayAs(username string, filter nostr.Filter) []*nostr.Event {
+// relayClient builds a publish.Client for the public /relay endpoint.
+func (h *H) relayClient() (*publish.Client, *store.Community, string) {
 	h.T.Helper()
 	if !h.HasZooid {
 		h.T.Skip("bin/zooid missing — run `make zooid` for relay coverage")
 	}
 	c := h.Community()
-	ident, err := c.IdentityByUsername(username)
-	if err != nil {
-		h.T.Fatal(err)
-	}
 	p := &publish.Client{
 		URL: "ws" + strings.TrimPrefix(h.Server.URL, "http") + "/relay",
 		Signer: &bunker.Signer{
@@ -322,14 +317,45 @@ func (h *H) QueryRelayAs(username string, filter nostr.Filter) []*nostr.Event {
 			Now: h.Clock.Now,
 		},
 	}
+	claim, _ := c.Setting("zooid_claim")
+	return p, c, claim
+}
+
+// QueryRelayAs reads events from the data relay as an identity, through
+// the full production path (proxy, NIP-42 auth, membership join).
+func (h *H) QueryRelayAs(username string, filter nostr.Filter) []*nostr.Event {
+	h.T.Helper()
+	p, c, claim := h.relayClient()
+	ident, err := c.IdentityByUsername(username)
+	if err != nil {
+		h.T.Fatal(err)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	claim, _ := c.Setting("zooid_claim")
 	events, err := p.QueryAs(ctx, ident, claim, filter)
 	if err != nil {
 		h.T.Fatalf("relay query as %s: %v", username, err)
 	}
 	return events
+}
+
+// PublishRelayAs publishes an event as an identity over raw nostr — the
+// "external client" path (CHAT-06).
+func (h *H) PublishRelayAs(t *testing.T, username string, evt *nostr.Event) {
+	t.Helper()
+	p, c, claim := h.relayClient()
+	ident, err := c.IdentityByUsername(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if evt.CreatedAt == 0 {
+		evt.CreatedAt = nostr.Timestamp(h.Clock.Now().Unix())
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := p.PublishAs(ctx, ident, claim, evt); err != nil {
+		t.Fatalf("relay publish as %s: %v", username, err)
+	}
 }
 
 // Member creates an active member through the front door: a real
@@ -376,6 +402,16 @@ func (h *H) Member(username string, roles ...string) *http.Client {
 	for _, role := range roles {
 		if err := c.AssignRole(ident.ID, role); err != nil {
 			h.T.Fatal(err)
+		}
+	}
+	if len(roles) > 0 {
+		// Role changes project into zooid's config (moderators get
+		// can_manage); give its hot-reload a moment to pick it up.
+		if err := h.App.ResyncZooid(c); err != nil {
+			h.T.Fatal(err)
+		}
+		if h.HasZooid {
+			time.Sleep(300 * time.Millisecond)
 		}
 	}
 	return client

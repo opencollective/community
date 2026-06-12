@@ -1,0 +1,33 @@
+{{template "head" .}}
+<main class="page" id="chat">
+  <header class="pagehead">
+    <h1># general</h1>
+    <a href="/">Home</a>
+  </header>
+  {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+  <section class="chatlog">
+    {{range .Messages}}
+    <div class="msg">
+      <strong>{{.Name}}</strong>
+      <span class="muted">@{{.Username}} · {{.Time}}</span>
+      <p>{{.Content}}</p>
+      {{if $.CanModerate}}
+      <form method="post" action="/chat/delete/{{.ID}}" class="inline">
+        <button type="submit" class="secondary small">Remove</button>
+      </form>
+      {{end}}
+    </div>
+    {{else}}
+    <p class="muted">No messages yet — say hello.</p>
+    {{end}}
+  </section>
+  {{if .Muted}}
+  <p class="muted">You are muted in this channel.</p>
+  {{else}}
+  <form method="post" action="/chat" class="chatform">
+    <input type="text" name="content" placeholder="Message #general…" maxlength="2000" required autofocus>
+    <button type="submit">Send</button>
+  </form>
+  {{end}}
+</main>
+{{template "foot" .}}

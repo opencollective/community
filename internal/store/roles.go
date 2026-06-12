@@ -82,6 +82,31 @@ func (c *Community) HasPermission(identityID int64, perm string) (bool, error) {
 	return false, rows.Err()
 }
 
+// PubkeysWithPermission lists active identities' pubkeys holding a
+// permission — used to project roles into zooid's config
+// (docs/flows/roles.md § protocol projection).
+func (c *Community) PubkeysWithPermission(perm string) ([]string, error) {
+	rows, err := c.DB.Query(`
+		SELECT DISTINCT i.pubkey FROM identities i
+		JOIN role_members m ON m.identity_id = i.id
+		JOIN roles r ON r.id = m.role_id
+		WHERE i.status = 'active' AND i.pubkey IS NOT NULL
+		  AND (',' || r.permissions || ',') LIKE '%,' || ? || ',%'`, perm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var pk string
+		if err := rows.Scan(&pk); err != nil {
+			return nil, err
+		}
+		out = append(out, pk)
+	}
+	return out, rows.Err()
+}
+
 // RoleNames returns the role names an identity holds.
 func (c *Community) RoleNames(identityID int64) ([]string, error) {
 	rows, err := c.DB.Query(

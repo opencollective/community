@@ -35,8 +35,10 @@ var secretRe = regexp.MustCompile(`(?m)^secret\s*=\s*"([0-9a-f]{64})"`)
 // WriteConfig writes (or refreshes) the community's virtual-relay config.
 // The relay's own secret key is preserved across rewrites. The community
 // pubkey gets a can_invite/can_manage role so communityd can fetch invite
-// claims and administer the relay.
-func (m *Manager) WriteConfig(c *store.Community, communityPubkey, name, description, icon string) error {
+// claims and administer the relay; managers are additional pubkeys with
+// can_manage (chat moderators — they sign NIP-29 moderation with their own
+// keys, docs/nostr/chat.md).
+func (m *Manager) WriteConfig(c *store.Community, communityPubkey, name, description, icon string, managers []string) error {
 	path := filepath.Join(m.ConfigDir, c.Slug+".toml")
 
 	secret := ""
@@ -54,6 +56,17 @@ func (m *Manager) WriteConfig(c *store.Community, communityPubkey, name, descrip
 		// membership lists) — it is infrastructure, not an identity, and
 		// zooid requires it in its config file.
 		secret = kp.SecretHex
+	}
+
+	managerList := ""
+	for i, pk := range managers {
+		if pk == communityPubkey {
+			continue
+		}
+		if i > 0 && managerList != "" {
+			managerList += ", "
+		}
+		managerList += fmt.Sprintf("%q", pk)
 	}
 
 	cfg := fmt.Sprintf(`host = %q
@@ -88,7 +101,13 @@ adapter = "local"
 pubkeys = [%q]
 can_invite = true
 can_manage = true
-`, HostFor(c), schemaFor(c), secret, name, icon, communityPubkey, description, communityPubkey)
+
+[roles.moderators]
+pubkeys = [%s]
+can_invite = false
+can_manage = true
+`, HostFor(c), schemaFor(c), secret, name, icon, communityPubkey, description,
+		communityPubkey, managerList)
 
 	if err := os.MkdirAll(m.ConfigDir, 0o750); err != nil {
 		return err

@@ -171,9 +171,9 @@ func (a *App) finalizeApproval(r *http.Request, c *store.Community, app *store.A
 		return err
 	}
 	if ident, err := c.IdentityByID(app.IdentityID); err == nil {
-		// Relay membership happens inside the publish (the join + claim);
-		// #general arrives with the channels milestone.
+		// Relay membership happens inside the publish (join + claim).
 		a.publishIdentityEvents(c, ident)
+		a.addToGeneral(c, ident)
 	}
 	if m, err := a.mailer(c); err == nil && app.Email != "" {
 		_ = m.Send(r.Context(), mailMessage([]string{app.Email},

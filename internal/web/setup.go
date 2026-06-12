@@ -439,7 +439,7 @@ func (a *App) setupCommunitySubmit(w http.ResponseWriter, r *http.Request, c *st
 	a.StartBunker(c)
 	a.publishCommunityEvents(c)
 	a.publishIdentityEvents(c, admin)
-	// TODO(channels milestone): create the #general NIP-29 group.
+	a.createGeneralChannel(c)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 

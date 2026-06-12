@@ -167,6 +167,48 @@ func FollowEvent(communityPubkey string, now time.Time) *nostr.Event {
 		CreatedAt: nostr.Timestamp(now.Unix())}
 }
 
+// --- NIP-29 group events (docs/nostr/chat.md) ---
+
+// GroupCreateEvent builds a kind 9007 creating group h. Sender needs
+// can_manage in the zooid config.
+func GroupCreateEvent(h string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: nostr.KindSimpleGroupCreateGroup,
+		Tags: nostr.Tags{{"h", h}}, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// GroupMetadataEvent builds a kind 9002 edit-metadata. private+closed make
+// the group members-only for both reads and writes.
+func GroupMetadataEvent(h, name, about string, private, closed bool, now time.Time) *nostr.Event {
+	tags := nostr.Tags{{"h", h}, {"name", name}, {"about", about}}
+	if private {
+		tags = append(tags, nostr.Tag{"private"})
+	}
+	if closed {
+		tags = append(tags, nostr.Tag{"closed"})
+	}
+	return &nostr.Event{Kind: nostr.KindSimpleGroupEditMetadata,
+		Tags: tags, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// GroupPutUserEvent builds a kind 9000 adding a member to group h.
+func GroupPutUserEvent(h, pubkey string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: nostr.KindSimpleGroupPutUser,
+		Tags: nostr.Tags{{"h", h}, {"p", pubkey}}, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// ChatMessageEvent builds a kind 9 group chat message.
+func ChatMessageEvent(h, content string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: nostr.KindSimpleGroupChatMessage,
+		Tags: nostr.Tags{{"h", h}}, Content: content, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// GroupDeleteEventEvent builds a kind 9005 removing one event from group h
+// (moderation — sender needs can_manage).
+func GroupDeleteEventEvent(h, eventID string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: nostr.KindSimpleGroupDeleteEvent,
+		Tags: nostr.Tags{{"h", h}, {"e", eventID}}, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
 // CommunityDefinitionEvent builds the NIP-72 kind 34550.
 func CommunityDefinitionEvent(slug, name, description, icon string, moderators []string, now time.Time) *nostr.Event {
 	tags := nostr.Tags{

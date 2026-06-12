@@ -47,6 +47,23 @@ func (c *Community) IdentityByEmail(email string) (*Identity, error) {
 	return c.identityWhere(`email = ?`, strings.ToLower(strings.TrimSpace(email)))
 }
 
+func (c *Community) IdentityByPubkey(pubkey string) (*Identity, error) {
+	return c.identityWhere(`pubkey = ?`, pubkey)
+}
+
+// SetMuted flips an identity's chat mute (CHAT-05).
+func (c *Community) SetMuted(id int64, muted bool) error {
+	_, err := c.DB.Exec(`UPDATE identities SET muted = ? WHERE id = ?`, boolInt(muted), id)
+	return err
+}
+
+// Muted reports an identity's mute state.
+func (c *Community) Muted(id int64) (bool, error) {
+	var m int
+	err := c.DB.QueryRow(`SELECT muted FROM identities WHERE id = ?`, id).Scan(&m)
+	return m == 1, err
+}
+
 func (c *Community) identityWhere(where string, arg any) (*Identity, error) {
 	var i Identity
 	var email sql.NullString
