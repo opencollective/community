@@ -433,8 +433,13 @@ func (a *App) setupCommunitySubmit(w http.ResponseWriter, r *http.Request, c *st
 			return
 		}
 	}
-	// TODO(zooid milestone): publish the community kind 0 + kind 34550 and
-	// create the #general NIP-29 group (SETUP-11's relay half).
+	if err := a.syncZooid(c); err != nil {
+		a.Log.Error("sync zooid config", "err", err)
+	}
+	a.StartBunker(c)
+	a.publishCommunityEvents(c)
+	a.publishIdentityEvents(c, admin)
+	// TODO(channels milestone): create the #general NIP-29 group.
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 

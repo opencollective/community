@@ -19,6 +19,7 @@ import (
 
 	"github.com/opencollective/community/internal/store"
 	"github.com/opencollective/community/internal/web"
+	"github.com/opencollective/community/internal/zooid"
 )
 
 var version = "dev" // set by -ldflags at release time
@@ -52,6 +53,15 @@ func main() {
 		os.Exit(1)
 	}
 	defer app.Close()
+
+	// The companion zooid process (docs/architecture/overview.md):
+	// communityd writes its per-community configs and proxies to it.
+	if cfgDir := envOr("ZOOID_CONFIG", defaultZooidConfig(*dataDir, *prod)); cfgDir != "" {
+		app.Zooid = &zooid.Manager{
+			ConfigDir: cfgDir,
+			Addr:      envOr("ZOOID_ADDR", "127.0.0.1:3334"),
+		}
+	}
 
 	// Start NIP-46 bunkers for communities with a configured relay.
 	if slugs, err := s.Slugs(); err == nil {
@@ -135,6 +145,15 @@ func runProd(s *store.Server, app *web.App, dataDir string, log *slog.Logger) {
 		log.Error("server", "err", err)
 		os.Exit(1)
 	}
+}
+
+// defaultZooidConfig follows the storage layout: config/zooid next to the
+// data directory in production; disabled in dev unless ZOOID_CONFIG is set.
+func defaultZooidConfig(dataDir string, prod bool) string {
+	if !prod {
+		return ""
+	}
+	return filepath.Join(filepath.Dir(filepath.Clean(dataDir)), "config", "zooid")
 }
 
 func envOr(key, def string) string {

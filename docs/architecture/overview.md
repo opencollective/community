@@ -56,10 +56,16 @@ communityd terminates TLS for the whole domain and routes by path:
 
 | Path | Handler |
 |---|---|
-| `/relay` (websocket upgrade) | proxy to zooid (the Nostr relay) |
+| `/relay` (websocket upgrade) | proxy to zooid (the community data relay) |
+| `/bunker` (websocket upgrade) | communityd's embedded NIP-46 transport relay (kind 24133 only, storage-free) |
 | `PUT /upload`, `GET /list/*`, `/mirror`, `HEAD\|GET /{sha256}` | proxy to zooid (Blossom) |
 | `/.well-known/nostr.json` | communityd (NIP-05) |
 | everything else | communityd web app |
+
+The split between `/relay` and `/bunker` is load-bearing: zooid requires
+NIP-42 membership to write, which external apps' ephemeral NIP-46 client
+keys can never satisfy — so signer traffic gets its own embedded,
+ephemeral, auth-free relay restricted to kind 24133.
 
 Blossom blob paths are 64 lowercase hex characters, which cannot collide with
 any web route. The proxy preserves the `Host` header because zooid dispatches
@@ -67,10 +73,10 @@ virtual relays by exact host match.
 
 ## The loop that makes it elegant
 
-The bunker uses the local zooid relay as its NIP-46 transport. External apps
-connect with `bunker://<pubkey>?relay=wss://your-community.org/relay&secret=…` —
-the signing conversation travels through the community's own relay. No third
-party relays are required for anything.
+The bunker uses the community's own domain as its NIP-46 transport. External
+apps connect with `bunker://<pubkey>?relay=wss://your-community.org/bunker&secret=…` —
+the signing conversation never leaves the community's infrastructure. No
+third-party relays are required for anything.
 
 ## Many communities, one server
 

@@ -150,7 +150,7 @@ func (a *App) followConfirm(w http.ResponseWriter, r *http.Request) {
 		a.internalError(w, err)
 		return
 	}
-	// TODO(zooid milestone): publish kind 0 + kind 3 (FOLLOW-03's relay half).
+	a.publishIdentityEvents(c, ident)
 	a.render(w, "follow_confirmed.html", map[string]any{
 		"Title": "Following", "Username": ident.Username,
 	})

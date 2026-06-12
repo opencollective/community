@@ -3,7 +3,6 @@ module github.com/opencollective/community
 go 1.26.4
 
 require (
-	github.com/fiatjaf/eventstore v0.17.5
 	github.com/fiatjaf/khatru v0.19.1
 	github.com/mattn/go-sqlite3 v1.14.45
 	github.com/nbd-wtf/go-nostr v0.52.3
@@ -11,7 +10,6 @@ require (
 )
 
 require (
-	fiatjaf.com/lib v0.3.2 // indirect
 	github.com/ImVexed/fasturl v0.0.0-20230304231329-4e41488060f3 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
@@ -26,6 +24,7 @@ require (
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/fasthttp/websocket v1.5.12 // indirect
+	github.com/fiatjaf/eventstore v0.17.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.1 // indirect

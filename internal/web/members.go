@@ -170,8 +170,11 @@ func (a *App) finalizeApproval(r *http.Request, c *store.Community, app *store.A
 	if err := c.AssignRole(app.IdentityID, "member"); err != nil {
 		return err
 	}
-	// TODO(zooid milestone): publish kind 0 + kind 3, add to the relay
-	// member list and #general (JOIN-05's relay half).
+	if ident, err := c.IdentityByID(app.IdentityID); err == nil {
+		// Relay membership happens inside the publish (the join + claim);
+		// #general arrives with the channels milestone.
+		a.publishIdentityEvents(c, ident)
+	}
 	if m, err := a.mailer(c); err == nil && app.Email != "" {
 		_ = m.Send(r.Context(), mailMessage([]string{app.Email},
 			"Welcome — your application was approved",

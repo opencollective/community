@@ -16,10 +16,7 @@ import (
 // /settings/apps: connect external Nostr apps via bunker URLs, list and
 // revoke sessions (docs/architecture/bunker.md, BUNKER-01/05).
 
-const (
-	setRelayURL     = "relay_url" // ws URL the bunker listens on (zooid)
-	bunkerSecretTTL = 10 * time.Minute
-)
+const bunkerSecretTTL = 10 * time.Minute
 
 // SignerFor returns the community's bunker signer (also used by future
 // channel/publishing handlers).
@@ -31,12 +28,12 @@ func (a *App) SignerFor(c *store.Community) *bunker.Signer {
 	}
 }
 
-// StartBunker launches (or restarts the subscription of) the community's
-// NIP-46 service when a relay is configured.
+// StartBunker launches (or refreshes) the community's NIP-46 service on
+// the embedded /bunker relay.
 func (a *App) StartBunker(c *store.Community) {
-	relayURL, err := c.Setting(setRelayURL)
-	if err != nil {
-		return // no relay yet — the zooid milestone configures it
+	relayURL, ok := a.relayURLFor(c)
+	if !ok {
+		return
 	}
 	a.bunkerMu.Lock()
 	defer a.bunkerMu.Unlock()
@@ -104,15 +101,6 @@ func (a *App) renderApps(w http.ResponseWriter, r *http.Request, c *store.Commun
 		"Title": "Connected apps", "Sessions": rows,
 		"BunkerURL": bunkerURL, "HasRelay": hasRelay,
 	})
-}
-
-// relayURLFor returns the public websocket URL apps should use.
-func (a *App) relayURLFor(c *store.Community) (string, bool) {
-	u, err := c.Setting(setRelayURL)
-	if err != nil || u == "" {
-		return "", false
-	}
-	return u, true
 }
 
 func (a *App) appsGenerateURL(w http.ResponseWriter, r *http.Request, c *store.Community, viewer *store.Identity) {

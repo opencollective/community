@@ -7,23 +7,29 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/fiatjaf/eventstore/slicestore"
-	"github.com/fiatjaf/khatru"
+	"github.com/nbd-wtf/go-nostr"
 
+	"github.com/opencollective/community/internal/bunker"
 	"github.com/opencollective/community/internal/crypto"
 	"github.com/opencollective/community/internal/mail"
+	"github.com/opencollective/community/internal/publish"
 	"github.com/opencollective/community/internal/store"
 	"github.com/opencollective/community/internal/web"
+	"github.com/opencollective/community/internal/zooid"
 )
 
 // Domain is the hostname the harness community lives on. httptest binds
@@ -47,40 +53,115 @@ type H struct {
 	Clock   *Clock
 	// Admin is the logged-in admin client, set by CompleteSetup.
 	Admin *http.Client
-	// RelayURL is the in-process khatru relay (ws://…) standing in for
-	// zooid until that milestone. It survives h.Restart() — the relay is
-	// a separate process in production.
+	// RelayURL is the NIP-46 transport relay (communityd's embedded
+	// /bunker).
 	RelayURL string
+	// HasZooid reports whether the real zooid binary is running (bin/zooid
+	// from `make zooid`). Tests asserting relay-side state skip without it.
+	HasZooid bool
 
-	relayServer *httptest.Server
+	port     string // stable communityd port across Restart()
+	zooidCmd *exec.Cmd
+	zooidDir string
 }
 
-// New boots a fresh server with an empty data directory.
+// New boots a fresh server with an empty data directory, plus the real
+// zooid binary when available (`make zooid`).
 func New(t *testing.T) *H {
 	t.Helper()
 	h := &H{
-		T:       t,
-		DataDir: t.TempDir(),
-		Mailer:  NewFakeMailer(),
-		Clock:   &Clock{t: time.Date(2026, 6, 12, 12, 0, 0, 0, time.UTC)},
+		T:        t,
+		DataDir:  t.TempDir(),
+		zooidDir: t.TempDir(),
+		Mailer:   NewFakeMailer(),
+		Clock:    &Clock{t: time.Date(2026, 6, 12, 12, 0, 0, 0, time.UTC)},
 	}
-	h.startRelay()
+	h.port = freePort(t)
+	h.startZooid()
 	h.boot()
 	return h
 }
 
-func (h *H) startRelay() {
-	relay := khatru.NewRelay()
-	db := &slicestore.SliceStore{}
-	if err := db.Init(); err != nil {
-		h.T.Fatal(err)
+// repoRoot walks up from the test binary's source dir to the module root.
+func repoRoot(t *testing.T) string {
+	t.Helper()
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
 	}
-	relay.StoreEvent = append(relay.StoreEvent, db.SaveEvent)
-	relay.QueryEvents = append(relay.QueryEvents, db.QueryEvents)
-	relay.DeleteEvent = append(relay.DeleteEvent, db.DeleteEvent)
-	h.relayServer = httptest.NewServer(relay)
-	h.RelayURL = "ws" + strings.TrimPrefix(h.relayServer.URL, "http")
-	h.T.Cleanup(h.relayServer.Close)
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			t.Fatal("module root not found")
+		}
+		dir = parent
+	}
+}
+
+// startZooid spawns the pinned zooid (one per harness; it outlives
+// communityd restarts like the separate process it is in production).
+func (h *H) startZooid() {
+	bin := filepath.Join(repoRoot(h.T), "bin", "zooid")
+	if _, err := os.Stat(bin); err != nil {
+		return // run `make zooid` for relay-side coverage
+	}
+	zooidPort := freePort(h.T)
+	for _, sub := range []string{"config", "data", "media"} {
+		if err := os.MkdirAll(filepath.Join(h.zooidDir, sub), 0o750); err != nil {
+			h.T.Fatal(err)
+		}
+	}
+	cmd := exec.Command(bin)
+	cmd.Env = append(os.Environ(),
+		"PORT="+zooidPort,
+		"CONFIG="+filepath.Join(h.zooidDir, "config"),
+		"DATA="+filepath.Join(h.zooidDir, "data"),
+		"MEDIA="+filepath.Join(h.zooidDir, "media"),
+	)
+	if err := cmd.Start(); err != nil {
+		h.T.Fatalf("start zooid: %v", err)
+	}
+	h.zooidCmd = cmd
+	h.T.Cleanup(func() { cmd.Process.Kill(); cmd.Wait() })
+
+	// Wait for the listener.
+	addr := "127.0.0.1:" + zooidPort
+	for i := 0; i < 100; i++ {
+		conn, err := net.DialTimeout("tcp", addr, 100*time.Millisecond)
+		if err == nil {
+			conn.Close()
+			h.HasZooid = true
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	h.T.Fatal("zooid did not start listening")
+}
+
+func (h *H) zooidAddr() string {
+	if h.zooidCmd == nil {
+		return ""
+	}
+	for _, kv := range h.zooidCmd.Env {
+		if strings.HasPrefix(kv, "PORT=") {
+			return "127.0.0.1:" + strings.TrimPrefix(kv, "PORT=")
+		}
+	}
+	return ""
+}
+
+func freePort(t *testing.T) string {
+	t.Helper()
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer l.Close()
+	_, port, _ := net.SplitHostPort(l.Addr().String())
+	return port
 }
 
 func (h *H) boot() {
@@ -98,10 +179,27 @@ func (h *H) boot() {
 	app.MailerFactory = func(provider, apiKey, from string) (mail.Mailer, error) {
 		return h.Mailer, nil
 	}
-	ts := httptest.NewServer(app.Handler())
+	if h.HasZooid {
+		app.Zooid = &zooid.Manager{
+			ConfigDir: filepath.Join(h.zooidDir, "config"),
+			Addr:      h.zooidAddr(),
+		}
+	}
+
+	// A stable port across restarts: bunker URLs and sessions must keep
+	// working after Restart() (BUNKER-07), as they do in production where
+	// the domain never changes.
+	l, err := net.Listen("tcp", "127.0.0.1:"+h.port)
+	if err != nil {
+		h.T.Fatal(err)
+	}
+	ts := &httptest.Server{Listener: l, Config: &http.Server{Handler: app.Handler()}}
+	ts.Start()
+	app.PublicBaseURL = ts.URL
 
 	h.Store, h.App, h.Server = s, app, ts
-	// As main.go does: start bunkers for communities with a relay.
+	h.RelayURL = "ws" + strings.TrimPrefix(ts.URL, "http") + "/bunker"
+	// As main.go does: start bunkers for all communities.
 	if slugs, err := s.Slugs(); err == nil {
 		for _, slug := range slugs {
 			if c, err := s.Community(slug); err == nil {
@@ -201,15 +299,37 @@ func (h *H) CompleteSetup(strict bool) *http.Client {
 		"name": {"Commons Hub"}, "description": {"A space for commoners."},
 	}, 303)
 	h.Admin = client
+	return client
+}
 
-	// Wire the relay (production: the zooid milestone's wizard step does
-	// this) and start the bunker.
+// QueryRelayAs reads events from the data relay as an identity, through
+// the full production path (proxy, NIP-42 auth, membership join).
+func (h *H) QueryRelayAs(username string, filter nostr.Filter) []*nostr.Event {
+	h.T.Helper()
+	if !h.HasZooid {
+		h.T.Skip("bin/zooid missing — run `make zooid` for relay coverage")
+	}
 	c := h.Community()
-	if err := c.SetSetting("relay_url", h.RelayURL); err != nil {
+	ident, err := c.IdentityByUsername(username)
+	if err != nil {
 		h.T.Fatal(err)
 	}
-	h.App.StartBunker(c)
-	return client
+	p := &publish.Client{
+		URL: "ws" + strings.TrimPrefix(h.Server.URL, "http") + "/relay",
+		Signer: &bunker.Signer{
+			C:   c,
+			DEK: func() ([]byte, bool) { return h.App.DEK(c) },
+			Now: h.Clock.Now,
+		},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	claim, _ := c.Setting("zooid_claim")
+	events, err := p.QueryAs(ctx, ident, claim, filter)
+	if err != nil {
+		h.T.Fatalf("relay query as %s: %v", username, err)
+	}
+	return events
 }
 
 // Member creates an active member through the front door: a real

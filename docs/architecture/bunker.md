@@ -18,8 +18,13 @@ ask the bunker to sign on their behalf.
 ## Bunker URL and connect flow
 
 ```
-bunker://<bunker-pubkey>?relay=wss://<domain>/relay&secret=<one-time-secret>
+bunker://<bunker-pubkey>?relay=wss://<domain>/bunker&secret=<one-time-secret>
 ```
+
+The transport is communityd's **embedded** relay at `/bunker` — restricted
+to kind 24133, storage-free, no auth — not zooid: the data relay requires
+NIP-42 membership to write, which external apps' ephemeral client keys can
+never hold (see [overview.md](overview.md) § request routing).
 
 - One bunker keypair per *member identity* (not one global): the
   `<bunker-pubkey>` identifies which member's signer an app is talking to,

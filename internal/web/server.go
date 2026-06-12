@@ -21,6 +21,7 @@ import (
 	"github.com/opencollective/community/internal/crypto"
 	"github.com/opencollective/community/internal/mail"
 	"github.com/opencollective/community/internal/store"
+	"github.com/opencollective/community/internal/zooid"
 )
 
 //go:embed templates/*.html
@@ -47,9 +48,15 @@ type App struct {
 	CheckDomain func(domain string) error
 	// DevMode serves plain HTTP and keeps redirects relative.
 	DevMode bool
+	// Zooid points at the companion relay+Blossom process; nil disables
+	// the data relay (the embedded /bunker relay still works).
+	Zooid *zooid.Manager
+	// PublicBaseURL overrides URL derivation (the harness's httptest).
+	PublicBaseURL string
 
-	tmpl *template.Template
-	keys *keyring
+	tmpl        *template.Template
+	keys        *keyring
+	bunkerRelay http.Handler
 
 	mailMu  sync.Mutex
 	mailers map[string]mail.Mailer // community slug -> configured mailer
@@ -82,6 +89,7 @@ func New(s *store.Server, log *slog.Logger) (*App, error) {
 		DevMode:       true,
 		tmpl:          t,
 		keys:          newKeyring(),
+		bunkerRelay:   newBunkerRelay(),
 		mailers:       map[string]mail.Mailer{},
 		baseCtx:       context.Background(),
 		bunkers:       map[string]*bunker.Service{},
@@ -121,6 +129,13 @@ func (a *App) Handler() http.Handler {
 		w.Write([]byte("ok"))
 	})
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(assetFS)))
+	mux.Handle("/bunker", a.bunkerRelay)
+
+	zp := a.zooidProxy()
+	mux.Handle("/relay", zp)
+	mux.Handle("/upload", zp)
+	mux.Handle("/mirror", zp)
+	mux.Handle("/list/", zp)
 
 	mux.HandleFunc("GET /setup", a.setupStep1)
 	mux.HandleFunc("POST /setup", a.setupStep1Submit)
@@ -137,6 +152,8 @@ func (a *App) Handler() http.Handler {
 
 	mux.HandleFunc("GET /unlock", a.unlockPage)
 	mux.HandleFunc("POST /unlock", a.unlockSubmit)
+
+	mux.HandleFunc("GET /.well-known/nostr.json", a.nip05)
 
 	mux.HandleFunc("GET /login", a.loginPage)
 	mux.HandleFunc("POST /login", a.loginSubmit)
@@ -208,7 +225,9 @@ func (a *App) resolveTenant(next http.Handler) http.Handler {
 		}
 
 		if !strings.HasPrefix(r.URL.Path, "/setup") &&
-			!strings.HasPrefix(r.URL.Path, "/static/") && r.URL.Path != "/healthz" {
+			!strings.HasPrefix(r.URL.Path, "/static/") &&
+			r.URL.Path != "/healthz" && r.URL.Path != "/bunker" &&
+			r.URL.Path != "/relay" {
 			step, err := a.wizardStep(c)
 			if err != nil {
 				a.internalError(w, err)
@@ -224,6 +243,12 @@ func (a *App) resolveTenant(next http.Handler) http.Handler {
 }
 
 func (a *App) home(w http.ResponseWriter, r *http.Request) {
+	if isBlossomHash(r.URL.Path) {
+		// Content-addressed Blossom blobs live at /{sha256} (BUD-01) —
+		// 64 hex chars cannot collide with any web route.
+		a.zooidProxy().ServeHTTP(w, r)
+		return
+	}
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return

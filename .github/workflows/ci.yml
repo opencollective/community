@@ -12,6 +12,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26.x"
+      - name: Cache zooid build
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: zooid-${{ hashFiles('ZOOID_VERSION') }}
+      - name: Build zooid (pinned)
+        run: make zooid
       - name: Unit tests
         run: make test
       - name: Integration tests
