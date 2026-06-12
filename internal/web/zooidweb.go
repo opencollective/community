@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbd-wtf/go-nostr"
+
 	"github.com/opencollective/community/internal/publish"
 	"github.com/opencollective/community/internal/store"
 	"github.com/opencollective/community/internal/zooid"
@@ -217,8 +219,11 @@ func (a *App) createGeneralChannel(c *store.Community) {
 	}
 }
 
-// addToGeneral grants a member access to #general (JOIN-05, CHAT-07).
-func (a *App) addToGeneral(c *store.Community, ident *store.Identity) {
+// ensureChannelGroup provisions a thread channel's NIP-29 group
+// (private+closed — public visibility is web-layer rendering, ADR 0012)
+// and grants all current member-level identities access. Idempotent: an
+// existing group just gets membership refreshed.
+func (a *App) ensureChannelGroup(c *store.Community, slug string) {
 	p, ok := a.publisher(c)
 	if !ok {
 		return
@@ -233,9 +238,62 @@ func (a *App) addToGeneral(c *store.Community, ident *store.Identity) {
 	if err != nil {
 		return
 	}
-	if err := p.PublishAs(ctx, community, claim,
-		publish.GroupPutUserEvent(generalGroup, ident.Pubkey, a.Now())); err != nil {
-		a.Log.Error("add to #general", "username", ident.Username, "err", err)
+	ch, err := c.ChannelBySlug(slug)
+	if err != nil {
+		return
+	}
+	events := []*nostr.Event{
+		publish.GroupCreateEvent(slug, a.Now()),
+		publish.GroupMetadataEvent(slug, ch.Name, "", true, true, a.Now()),
+	}
+	members, err := c.MemberRows("")
+	if err != nil {
+		a.Log.Error("channel group members", "err", err)
+		return
+	}
+	for _, m := range members {
+		events = append(events, publish.GroupPutUserEvent(slug, m.Pubkey, a.Now()))
+	}
+	// "group already exists" on re-enable is expected; memberships still
+	// apply.
+	if err := p.PublishAs(ctx, community, claim, events...); err != nil &&
+		!strings.Contains(err.Error(), "already exists") {
+		a.Log.Error("ensure channel group", "slug", slug, "err", err)
+	}
+}
+
+// addToChannelGroups grants a member access to every enabled channel's
+// group (JOIN-05, CHAT-07).
+func (a *App) addToChannelGroups(c *store.Community, ident *store.Identity) {
+	p, ok := a.publisher(c)
+	if !ok {
+		return
+	}
+	ctx, cancel := context.WithTimeout(a.baseCtx, publishTimeout)
+	defer cancel()
+	community, err := a.communityIdentity(c)
+	if err != nil {
+		return
+	}
+	claim, err := a.claim(ctx, c, p)
+	if err != nil {
+		return
+	}
+	channels, err := c.Channels()
+	if err != nil {
+		return
+	}
+	var events []*nostr.Event
+	for _, ch := range channels {
+		if ch.Enabled {
+			events = append(events, publish.GroupPutUserEvent(ch.Slug, ident.Pubkey, a.Now()))
+		}
+	}
+	if len(events) == 0 {
+		return
+	}
+	if err := p.PublishAs(ctx, community, claim, events...); err != nil {
+		a.Log.Error("add to channel groups", "username", ident.Username, "err", err)
 	}
 }
 

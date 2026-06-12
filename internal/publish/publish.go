@@ -5,6 +5,7 @@ package publish
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -207,6 +208,89 @@ func ChatMessageEvent(h, content string, now time.Time) *nostr.Event {
 func GroupDeleteEventEvent(h, eventID string, now time.Time) *nostr.Event {
 	return &nostr.Event{Kind: nostr.KindSimpleGroupDeleteEvent,
 		Tags: nostr.Tags{{"h", h}, {"e", eventID}}, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// --- thread channel events (docs/nostr/channels.md) ---
+
+const (
+	// KindThreadRoot is the NIP-7D thread root.
+	KindThreadRoot = 11
+	// KindComment is the NIP-22 reply.
+	KindComment = 1111
+	// KindApproval is the NIP-72 approval, reused for thread approvals
+	// (ADR 0010).
+	KindApproval = 4550
+	// KindLabel is the NIP-32 label (declines, lifecycle states).
+	KindLabel = 1985
+	// LabelNamespace is our NIP-32 namespace.
+	LabelNamespace = "community.opencollective"
+)
+
+// ThreadRootEvent builds a kind 11 starting a thread in channel h. The
+// visibility tag implements ADR 0012; extra carries template fields.
+func ThreadRootEvent(h, title, content, visibility string, extra nostr.Tags, now time.Time) *nostr.Event {
+	tags := nostr.Tags{{"h", h}, {"visibility", visibility}}
+	if title != "" {
+		tags = append(tags, nostr.Tag{"title", title})
+	}
+	tags = append(tags, extra...)
+	return &nostr.Event{Kind: KindThreadRoot, Tags: tags, Content: content,
+		CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// ReplyEvent builds a kind 1111 reply to a thread root.
+func ReplyEvent(h, rootID, content string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindComment,
+		Tags:    nostr.Tags{{"h", h}, {"e", rootID, "", "root"}},
+		Content: content, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// ReactionEvent builds a kind 7 emoji reaction (NIP-25).
+func ReactionEvent(h, targetID, emoji string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: nostr.KindReaction,
+		Tags:    nostr.Tags{{"h", h}, {"e", targetID}},
+		Content: emoji, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// DeletionEvent builds a kind 5 (NIP-09) retracting one of the author's
+// own events (reaction toggles).
+func DeletionEvent(h, targetID string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: nostr.KindDeletion,
+		Tags:      nostr.Tags{{"h", h}, {"e", targetID}},
+		CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// ApprovalEvent builds a kind 4550 approving a thread root — the same
+// signed-trail semantics as community publishing (ADR 0010). The approved
+// event's JSON travels in the content, NIP-72 style.
+func ApprovalEvent(h string, root *nostr.Event, communityPubkey, communitySlug string, now time.Time) *nostr.Event {
+	raw, _ := json.Marshal(root)
+	return &nostr.Event{Kind: KindApproval,
+		Tags: nostr.Tags{
+			{"h", h},
+			{"a", fmt.Sprintf("%d:%s:%s", KindCommunityDefinition, communityPubkey, communitySlug)},
+			{"e", root.ID},
+			{"p", root.PubKey},
+			{"k", fmt.Sprint(root.Kind)},
+		},
+		Content:   string(raw),
+		CreatedAt: nostr.Timestamp(now.Unix()),
+	}
+}
+
+// DeclineEvent builds a kind 1985 'declined' label with a reason
+// (CHAN-18).
+func DeclineEvent(h, rootID, reason string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindLabel,
+		Tags: nostr.Tags{
+			{"h", h},
+			{"L", LabelNamespace},
+			{"l", "declined", LabelNamespace},
+			{"e", rootID},
+		},
+		Content:   reason,
+		CreatedAt: nostr.Timestamp(now.Unix()),
+	}
 }
 
 // CommunityDefinitionEvent builds the NIP-72 kind 34550.

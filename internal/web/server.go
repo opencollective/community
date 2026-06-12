@@ -177,6 +177,15 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("POST /chat/delete/{id}", a.requireMember(a.chatDelete))
 	mux.HandleFunc("POST /chat/mute/{username}", a.requireMember(a.chatMute))
 
+	mux.HandleFunc("GET /channels/{slug}", a.channelList)
+	mux.HandleFunc("GET /channels/{slug}/new", a.channelNewForm)
+	mux.HandleFunc("POST /channels/{slug}", a.channelCreate)
+	mux.HandleFunc("GET /channels/{slug}/t/{id}", a.threadView)
+	mux.HandleFunc("POST /channels/{slug}/t/{id}/{action}", a.threadAct)
+
+	mux.HandleFunc("GET /settings/community", a.requireAdmin(a.settingsPage))
+	mux.HandleFunc("POST /settings/channels/{slug}", a.requireAdmin(a.settingsChannel))
+
 	mux.HandleFunc("GET /settings/apps", a.requireUser(a.appsPage))
 	mux.HandleFunc("POST /settings/apps/url", a.requireUser(a.appsGenerateURL))
 	mux.HandleFunc("POST /settings/apps/revoke/{id}", a.requireUser(a.appsRevoke))

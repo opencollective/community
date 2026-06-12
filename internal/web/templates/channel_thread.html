@@ -1,0 +1,52 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>{{.Title}}</h1>
+    <a href="/channels/{{.Channel.Slug}}">Back to {{.Channel.Name}}</a>
+  </header>
+  <section class="card appcard">
+    <span class="muted">by @{{.T.Author}} · {{.T.Time}}</span>
+    {{if .IsMember}}<span class="pill">{{.T.Status}}</span><span class="pill">{{.T.Visibility}}</span>{{end}}
+    <p>{{.T.Content}}</p>
+    <p class="muted">
+      {{range .T.Reactions}}{{.Emoji}} {{.Count}} · {{end}}
+      {{if eq .T.Status "pending"}}{{len .T.Approvers}} of {{.T.Required}} approvals
+        {{if .T.Approvers}}({{range $i, $u := .T.Approvers}}{{if $i}}, {{end}}@{{$u}}{{end}}){{end}}
+      {{end}}
+      {{if eq .T.Status "declined"}}declined by @{{.T.DeclinedBy}}{{if .T.Reason}} — {{.T.Reason}}{{end}}{{end}}
+    </p>
+    {{if .IsMember}}
+    <form method="post" action="/channels/{{.Channel.Slug}}/t/{{.T.ID}}/react" class="inline">
+      <input type="hidden" name="emoji" value="👍">
+      <button type="submit" class="secondary small">👍</button>
+    </form>
+    <form method="post" action="/channels/{{.Channel.Slug}}/t/{{.T.ID}}/react" class="inline">
+      <input type="hidden" name="emoji" value="❤️">
+      <button type="submit" class="secondary small">❤️</button>
+    </form>
+    {{if and .CanDecide (eq .T.Status "pending")}}
+    <form method="post" action="/channels/{{.Channel.Slug}}/t/{{.T.ID}}/approve" class="inline">
+      <button type="submit">Approve</button>
+    </form>
+    <form method="post" action="/channels/{{.Channel.Slug}}/t/{{.T.ID}}/decline" class="inline">
+      <input type="text" name="reason" placeholder="Reason">
+      <button type="submit" class="secondary">Decline</button>
+    </form>
+    {{end}}
+    {{end}}
+  </section>
+  <section class="chatlog">
+    {{range .T.Replies}}
+    <div class="msg"><strong>@{{.Author}}</strong> <span class="muted">{{.Time}}</span><p>{{.Content}}</p></div>
+    {{else}}
+    <p class="muted">No replies yet.</p>
+    {{end}}
+  </section>
+  {{if .IsMember}}
+  <form method="post" action="/channels/{{.Channel.Slug}}/t/{{.T.ID}}/reply" class="chatform">
+    <input type="text" name="content" placeholder="Reply…" maxlength="5000" required>
+    <button type="submit">Reply</button>
+  </form>
+  {{end}}
+</main>
+{{template "foot" .}}

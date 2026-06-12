@@ -1,0 +1,39 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Community settings</h1>
+    <a href="/">Home</a>
+  </header>
+  <h2>Channels</h2>
+  {{range .Channels}}
+  <section class="card appcard">
+    <form method="post" action="/settings/channels/{{.Slug}}" class="inline channelrow">
+      <strong>{{.Name}}</strong>
+      <span class="muted">{{.Type}}{{if .Template}} · {{.Template}}{{end}}</span>
+      {{if eq .Slug "general"}}
+      <span class="pill">always on</span>
+      {{else}}
+      <label class="check"><input type="checkbox" name="enabled" value="1" {{if .Enabled}}checked{{end}}> enabled</label>
+      {{end}}
+      {{if eq .Type "threads"}}
+      <label>approvers
+        <input type="text" name="approve_roles" value="{{range $i, $r := .ApproveRoles}}{{if $i}},{{end}}{{$r}}{{end}}" size="18">
+      </label>
+      <label>required
+        <input type="number" name="approvals_required" value="{{.ApprovalsRequired}}" min="1" size="3">
+      </label>
+      <label>default
+        <select name="default_visibility">
+          <option value="members" {{if eq .DefaultVisibility "members"}}selected{{end}}>members</option>
+          <option value="public" {{if eq .DefaultVisibility "public"}}selected{{end}}>public</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" name="overridable" value="1" {{if .Overridable}}checked{{end}}> author may override</label>
+      {{end}}
+      <button type="submit" class="secondary small">Save</button>
+    </form>
+    <p class="hint">Author never counts toward their own quorum · the admin always decides alone.</p>
+  </section>
+  {{end}}
+</main>
+{{template "foot" .}}

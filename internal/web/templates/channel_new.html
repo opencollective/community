@@ -1,0 +1,27 @@
+{{template "head" .}}
+<main class="wizard">
+  <section class="card">
+    <h1>New in {{.Channel.Name}}</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/channels/{{.Channel.Slug}}">
+      {{if .NeedsTitle}}
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" value="{{.FormTitle}}" required autofocus>
+      {{end}}
+      <label for="content">What is it about?</label>
+      <textarea id="content" name="content" rows="5" required>{{.Content}}</textarea>
+      {{if .Channel.Overridable}}
+      <label for="visibility">Visibility</label>
+      <select id="visibility" name="visibility">
+        <option value="public" {{if eq .Channel.DefaultVisibility "public"}}selected{{end}}>Public</option>
+        <option value="members" {{if eq .Channel.DefaultVisibility "members"}}selected{{end}}>Members only</option>
+      </select>
+      {{end}}
+      <button type="submit">Submit for approval</button>
+      <p class="hint">Becomes visible per its status once approved:
+      {{range $i, $r := .Channel.ApproveRoles}}{{if $i}}, {{end}}{{$r}}{{end}}
+      × {{.Channel.ApprovalsRequired}} (not you), or the admin.</p>
+    </form>
+  </section>
+</main>
+{{template "foot" .}}

@@ -415,6 +415,10 @@ func (a *App) setupCommunitySubmit(w http.ResponseWriter, r *http.Request, c *st
 		a.internalError(w, err)
 		return
 	}
+	if err := c.CreateDefaultChannels(a.Now()); err != nil {
+		a.internalError(w, err)
+		return
+	}
 	_, admin, err := a.adminIdentity(c)
 	if err != nil {
 		a.internalError(w, err)
@@ -440,6 +444,7 @@ func (a *App) setupCommunitySubmit(w http.ResponseWriter, r *http.Request, c *st
 	a.publishCommunityEvents(c)
 	a.publishIdentityEvents(c, admin)
 	a.createGeneralChannel(c)
+	a.ensureChannelGroup(c, "proposals")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
