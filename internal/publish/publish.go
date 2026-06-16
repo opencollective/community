@@ -356,6 +356,54 @@ func PublishedEvent(contentType, title, content, slug, proposerPubkey, proposalI
 		CreatedAt: nostr.Timestamp(now.Unix())}
 }
 
+// --- community profile edits / linktree (docs/nostr/publishing.md § profile edits) ---
+
+const (
+	// KindAppData is NIP-78 application-specific data (kind 30078), used
+	// as the profile-edit wrapper.
+	KindAppData = 30078
+)
+
+// ProfileData is the editable community profile (kind 0 metadata plus a
+// links array — a pragmatic extension other clients ignore).
+type ProfileData struct {
+	Name    string        `json:"name"`
+	About   string        `json:"about"`
+	Picture string        `json:"picture"`
+	Links   []ProfileLink `json:"links,omitempty"`
+}
+
+// ProfileLink is one linktree entry.
+type ProfileLink struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
+}
+
+// ProfileEditWrapper builds a kind 30078 wrapper signed by the proposer
+// (PROF-01). A bare kind 0 would replace the proposer's own profile — the
+// wrapper carries the proposed community profile as content instead, with
+// a k:0 tag and a base hash for stale detection (PROF-08).
+func ProfileEditWrapper(profileJSON, communityPubkey, communitySlug, uniqueD, baseHash string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindAppData,
+		Tags: nostr.Tags{
+			{"d", uniqueD},
+			{"k", "0"},
+			{"a", fmt.Sprintf("%d:%s:%s", KindCommunityDefinition, communityPubkey, communitySlug)},
+			{"proposal", "profile"},
+			{"base", baseHash},
+		},
+		Content:   profileJSON,
+		CreatedAt: nostr.Timestamp(now.Unix()),
+	}
+}
+
+// RawProfileEvent builds a community kind 0 from a metadata JSON string
+// (PROF-03 — the bunker constructs this from the approved wrapper).
+func RawProfileEvent(metadataJSON string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: nostr.KindProfileMetadata, Content: metadataJSON,
+		CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
 // IsNewsletter reports whether a published article carries the newsletter
 // self-label.
 func IsNewsletter(evt *nostr.Event) bool {

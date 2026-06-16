@@ -1,0 +1,34 @@
+{{template "head" .}}
+<main class="wizard">
+  <section class="card">
+    <h1>Propose a profile change</h1>
+    <p class="sub">Signed with your key; it publishes to the community profile
+    once approved.</p>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/profile/edit">
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text" value="{{.P.Name}}" required>
+      <label for="about">Description</label>
+      <textarea id="about" name="about" rows="3">{{.P.About}}</textarea>
+      <label for="picture">Icon URL</label>
+      <input id="picture" name="picture" type="url" value="{{.P.Picture}}" placeholder="https://…">
+      <label>Links</label>
+      {{range .P.Links}}
+      <div class="linkrow">
+        <input type="text" name="link_label" value="{{.Label}}" placeholder="Label">
+        <input type="url" name="link_url" value="{{.URL}}" placeholder="https://…">
+      </div>
+      {{end}}
+      <div class="linkrow">
+        <input type="text" name="link_label" placeholder="Label">
+        <input type="url" name="link_url" placeholder="https://…">
+      </div>
+      <div class="linkrow">
+        <input type="text" name="link_label" placeholder="Label">
+        <input type="url" name="link_url" placeholder="https://…">
+      </div>
+      <button type="submit">Submit for approval</button>
+    </form>
+  </section>
+</main>
+{{template "foot" .}}

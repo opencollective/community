@@ -22,6 +22,7 @@ var DefaultPostPolicies = []PostPolicy{
 	{"announcement", []string{"steward"}, 1},
 	{"blog", []string{"steward"}, 1},
 	{"newsletter", []string{"steward"}, 2},
+	{"profile", []string{"steward"}, 2},
 }
 
 // CreateDefaultPostPolicies installs the section defaults.
@@ -73,8 +74,8 @@ func (c *Community) SetPostPolicy(contentType string, roles []string, required i
 
 // AllPostPolicies lists the sections in a stable order.
 func (c *Community) AllPostPolicies() ([]*PostPolicy, error) {
-	out := make([]*PostPolicy, 0, 3)
-	for _, ct := range []string{"announcement", "blog", "newsletter"} {
+	out := make([]*PostPolicy, 0, 4)
+	for _, ct := range []string{"announcement", "blog", "newsletter", "profile"} {
 		p, err := c.PostPolicyFor(ct)
 		if err != nil {
 			return nil, err
@@ -109,6 +110,38 @@ func (c *Community) RecordNewsletterSent(eventID string, recipients int) error {
 	_, err := c.DB.Exec(
 		`UPDATE newsletter_log SET recipient_count = ? WHERE event_id = ?`, recipients, eventID)
 	return err
+}
+
+// ClaimProfileEditApplied records that a wrapper was applied to the
+// community kind 0, returning false if another caller already did
+// (PROF-03 idempotency).
+func (c *Community) ClaimProfileEditApplied(wrapperID string, now time.Time) (bool, error) {
+	res, err := c.DB.Exec(
+		`INSERT OR IGNORE INTO applied_profile_edits (wrapper_id, applied_at) VALUES (?, ?)`,
+		wrapperID, now.Unix())
+	if err != nil {
+		return false, err
+	}
+	n, _ := res.RowsAffected()
+	return n > 0, nil
+}
+
+// AppliedProfileEdits returns the set of applied wrapper ids.
+func (c *Community) AppliedProfileEdits() (map[string]bool, error) {
+	rows, err := c.DB.Query(`SELECT wrapper_id FROM applied_profile_edits`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]bool{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out[id] = true
+	}
+	return out, rows.Err()
 }
 
 // NewsletterRecipients lists email addresses opted into the newsletter

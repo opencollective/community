@@ -29,7 +29,38 @@
     {{end}}
   </section>
   {{else}}
-  <p class="muted">Nothing waiting for review.</p>
+  <p class="muted">No posts waiting for review.</p>
+  {{end}}
+
+  {{if .ProfileEdits}}
+  <h2>Profile edits</h2>
+  {{range .ProfileEdits}}
+  <section class="card appcard">
+    <span class="pill">profile edit</span>
+    <span class="muted">proposed by @{{.Author}} · {{.Time}}</span>
+    {{if .Stale}}<span class="pill">stale — the profile changed since this was proposed</span>{{end}}
+    <table class="records">
+      {{range .Diff}}
+      <tr><td>{{.Field}}</td><td class="muted">{{.Old}}</td><td>→ {{.New}}</td></tr>
+      {{else}}
+      <tr><td class="muted" colspan="3">No changes.</td></tr>
+      {{end}}
+    </table>
+    <p class="muted">
+      {{if eq .Status "approved"}}approved — publishing…
+      {{else}}{{len .Approvers}} of {{.Required}} approvals{{end}}
+    </p>
+    {{if and $.CanDecide (eq .Status "pending")}}
+    <form method="post" action="/profile/pending/{{.ID}}/approve" class="inline">
+      <button type="submit">Approve and sign</button>
+    </form>
+    <form method="post" action="/profile/pending/{{.ID}}/decline" class="inline">
+      <input type="text" name="reason" placeholder="Reason">
+      <button type="submit" class="secondary">Decline</button>
+    </form>
+    {{end}}
+  </section>
+  {{end}}
   {{end}}
 </main>
 {{template "foot" .}}

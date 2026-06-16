@@ -273,9 +273,14 @@ func (a *App) pendingPosts(w http.ResponseWriter, r *http.Request, c *store.Comm
 		}
 		pending = append(pending, pr)
 	}
+	profileEdits, err := a.loadProfileEdits(c)
+	if err != nil {
+		a.internalError(w, err)
+		return
+	}
 	a.render(w, "posts_pending.html", map[string]any{
-		"Title": "Pending posts", "Proposals": pending, "CanDecide": canDecide,
-		"Error": r.URL.Query().Get("err"),
+		"Title": "Pending posts", "Proposals": pending, "ProfileEdits": profileEdits,
+		"CanDecide": canDecide, "Error": r.URL.Query().Get("err"),
 	})
 }
 

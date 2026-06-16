@@ -172,6 +172,10 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /members/pending", a.requireMember(a.pendingPage))
 	mux.HandleFunc("POST /members/pending/{id}", a.requireMember(a.pendingDecide))
 
+	mux.HandleFunc("GET /profile/edit", a.requireMember(a.profileEditForm))
+	mux.HandleFunc("POST /profile/edit", a.requireMember(a.profileEditSubmit))
+	mux.HandleFunc("POST /profile/pending/{id}/{action}", a.requireMember(a.profileDecide))
+
 	mux.HandleFunc("GET /compose", a.requireProposer(a.composeForm))
 	mux.HandleFunc("POST /compose", a.requireProposer(a.composeSubmit))
 	mux.HandleFunc("GET /posts/pending", a.requireMember(a.pendingPosts))
@@ -291,6 +295,7 @@ func (a *App) home(w http.ResponseWriter, r *http.Request) {
 		"Title":         name,
 		"Name":          name,
 		"Description":   desc,
+		"Links":         a.currentProfile(c).Links,
 		"IsMember":      viewer != nil && a.memberLevel(c, viewer),
 		"Announcements": announcements,
 		"Blog":          blog,

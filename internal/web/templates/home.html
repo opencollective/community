@@ -2,12 +2,18 @@
 <main class="hero">
   <h1>{{.Name}}</h1>
   {{if .Description}}<p class="sub">{{.Description}}</p>{{end}}
+  {{if .Links}}
+  <div class="linktree">
+    {{range .Links}}<a class="btn" href="{{.URL}}">{{.Label}}</a>{{end}}
+  </div>
+  {{end}}
   {{if .IsMember}}
   <div class="actions">
     <a class="btn primary" href="/chat"># general</a>
     <a class="btn" href="/channels/proposals">Proposals</a>
     <a class="btn" href="/members">Members</a>
     <a class="link" href="/compose">New post</a>
+    <a class="link" href="/profile/edit">Edit profile</a>
   </div>
   {{else}}
   <div class="actions">
