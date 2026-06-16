@@ -37,11 +37,23 @@ type session struct {
 }
 
 func (c *Client) connect(ctx context.Context, ident *store.Identity) (*session, error) {
-	relay, err := nostr.RelayConnect(ctx, c.URL)
-	if err != nil {
-		return nil, fmt.Errorf("publish: connect %s: %w", c.URL, err)
+	// Retry the websocket handshake: a freshly-provisioned community's
+	// virtual relay appears only once zooid's inotify picks up the config
+	// communityd just wrote, so the first connect can race that reload.
+	var lastErr error
+	for i := 0; i < 30; i++ {
+		relay, err := nostr.RelayConnect(ctx, c.URL)
+		if err == nil {
+			return &session{relay: relay, ident: ident, c: c}, nil
+		}
+		lastErr = err
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(100 * time.Millisecond):
+		}
 	}
-	return &session{relay: relay, ident: ident, c: c}, nil
+	return nil, fmt.Errorf("publish: connect %s: %w", c.URL, lastErr)
 }
 
 func (s *session) close() { s.relay.Close() }
