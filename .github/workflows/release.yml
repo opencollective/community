@@ -1,0 +1,68 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+
+      - name: Cross toolchain (arm64)
+        if: matrix.arch == 'arm64'
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Build communityd and zooid (${{ matrix.arch }})
+        env:
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: "1"
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then export CC=aarch64-linux-gnu-gcc; fi
+          VERSION="${GITHUB_REF_NAME}"
+          go build -ldflags "-X main.version=${VERSION}" -o dist/communityd ./cmd/communityd
+          ./scripts/build-zooid.sh
+          cp "$(readlink -f bin/zooid)" dist/zooid
+          tar -C dist -czf "community-${VERSION}-linux-${{ matrix.arch }}.tar.gz" communityd zooid
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tarball-${{ matrix.arch }}
+          path: community-*.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tarball-*
+          merge-multiple: true
+      - name: Checksums
+        run: sha256sum community-*.tar.gz > checksums.txt
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            community-*.tar.gz
+            checksums.txt
+            deploy/communityd.service
+            deploy/zooid.service
+          body: |
+            Install on a fresh Linux VPS:
+
+            ```sh
+            curl -fsSL https://raw.githubusercontent.com/opencollective/community/main/install.sh | sudo sh
+            ```
+
+            zooid is pinned at the commit in `ZOOID_VERSION`.

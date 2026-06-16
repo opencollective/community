@@ -1,0 +1,25 @@
+[Unit]
+Description=zooid relay + Blossom (companion to communityd)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=community
+Group=community
+ExecStart=/opt/community/bin/zooid
+Environment=PORT=3334
+Environment=CONFIG=/opt/community/config/zooid
+Environment=DATA=/opt/community/data/zooid
+Environment=MEDIA=/opt/community/media
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/community/data /opt/community/config /opt/community/media
+
+[Install]
+WantedBy=multi-user.target
