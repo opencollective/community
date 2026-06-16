@@ -52,9 +52,11 @@ And host A appears as a fiscal-host member, not as the donor of those amounts
 
 ### MONEY-08 — a host pays an expense like anyone, plus a debit
 Given an approved travel expense by @dan and host A's travel earmark
-When A signs a debit referencing the expense and @dan confirms reception
-Then the expense is paid, A's balance and the travel earmark decrease
-And the unconfirmed debit decreased nothing
+When A signs a debit referencing the expense
+Then A's balance and the travel earmark decrease (the host's signed debit
+is authoritative for the host's own ledger — v1 simplification)
+When @dan confirms reception
+Then the expense is paid
 
 ### MONEY-09 — balance attestations reconcile visibly
 Given derived balance €9,160 for host A
@@ -98,7 +100,10 @@ Then each renders its typed proof (explorer link for the tx hash)
 And entries and claims without proofs are equally valid
 And an unknown proof type is stored and rendered generically, not rejected
 
-### MONEY-16 — on-chain proof of funds
+### MONEY-16 — on-chain proof of funds (deferred)
+Deferred past v1: BIP-322 / EIP-191 ownership-signature verification is a
+later milestone. The attestation may carry a proof-of-funds address +
+signature, stored and displayed, but communityd does not yet verify it.
 Given host A attests 0.5 BTC with an address and a BIP-322 ownership signature
 Then communityd verifies the signature binds the address to A's npub
 And the treasury shows the attestation with a verified marker and explorer link

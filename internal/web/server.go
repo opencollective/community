@@ -195,6 +195,9 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /channels/expenses/t/{id}", a.expenseView)
 	mux.HandleFunc("POST /channels/expenses/t/{id}/{action}", a.expenseAct)
 	mux.HandleFunc("GET /contributors", a.contributorsPage)
+	mux.HandleFunc("GET /treasury", a.treasuryPage)
+	mux.HandleFunc("POST /treasury/ledger", a.requireHost(a.ledgerSubmit))
+	mux.HandleFunc("POST /settings/treasury", a.requireAdmin(a.settingsTreasury))
 
 	mux.HandleFunc("GET /channels/events", a.eventList)
 	mux.HandleFunc("GET /channels/events/new", a.eventNewForm)

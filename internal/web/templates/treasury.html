@@ -1,0 +1,84 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Treasury</h1>
+    <a href="/contributors">Contributors</a>
+    <a href="/channels/expenses">Expenses</a>
+    <a href="/">Home</a>
+  </header>
+
+  <h2>Held</h2>
+  <table class="records">
+    <tr><th>Host</th><th>Currency</th><th>Total</th></tr>
+    {{range .Totals}}
+    <tr><td>@{{.Host}}</td><td>{{.Currency}}</td><td>{{printf "%.2f" .Amount}}</td></tr>
+    {{else}}<tr><td colspan="3" class="muted">No funds recorded yet.</td></tr>{{end}}
+  </table>
+
+  <h2>By earmark</h2>
+  <table class="records">
+    <tr><th>Host</th><th>Currency</th><th>Earmark</th><th>Held</th><th>Attested</th></tr>
+    {{range .Balances}}
+    <tr>
+      <td>@{{.Host}}</td><td>{{.Currency}}</td><td>{{if .Earmark}}{{.Earmark}}{{else}}—{{end}}</td>
+      <td>{{printf "%.2f" .Derived}}</td>
+      <td>{{if .HasAttest}}{{printf "%.2f" .Attested}}{{if .Discrepant}} <span class="pill">discrepancy {{printf "%.2f" .Derived}} vs {{printf "%.2f" .Attested}}</span>{{end}}{{else}}—{{end}}</td>
+    </tr>
+    {{else}}
+    <tr><td colspan="5" class="muted">No funds recorded yet.</td></tr>
+    {{end}}
+  </table>
+
+  <h2>Contributors</h2>
+  <ul class="memberlist">
+    {{range .Contributions}}
+    <li><strong>{{.Contributor}}</strong> <span class="muted">{{printf "%.2f" .Amount}} {{.Currency}}</span></li>
+    {{else}}<li class="muted">No contributions yet.</li>{{end}}
+  </ul>
+
+  <h2>Ledger</h2>
+  {{range .Ledger}}
+  <div class="msg">
+    <strong>{{.Type}}</strong> {{.AmountStr}} {{.Currency}}
+    {{if .Source}}· source {{.Source}}{{end}}{{if .Earmark}}· earmark {{.Earmark}}{{end}}
+    {{if .Proof}}· proof {{.Proof}}{{end}}
+    {{if .Mismatch}}<span class="pill">running-balance mismatch</span>{{end}}
+    <span class="muted">by @{{.Host}} · {{.Time}}</span>
+  </div>
+  {{else}}<p class="muted">No ledger entries.</p>{{end}}
+
+  {{if .CanHost}}
+  <h2>Record a ledger entry</h2>
+  <form method="post" action="/treasury/ledger" class="card appcard">
+    <label>Type
+      <select name="type">
+        <option value="credit">Credit (money in)</option>
+        <option value="debit">Debit (paid an expense)</option>
+        <option value="attestation">Balance attestation</option>
+      </select>
+    </label>
+    <div class="linkrow">
+      <label>Amount <input name="amount" type="text" inputmode="decimal"></label>
+      <label>Currency <input name="currency" type="text" value="EUR" size="5"></label>
+    </div>
+    <label>Source (credits) <input name="source" type="text" placeholder="Foundation for the Commons"></label>
+    <label>Source type
+      <select name="source_type">
+        <option value="identity">Third party (recognised)</option>
+        <option value="aggregate">Aggregate (e.g. ticket buyers)</option>
+        <option value="self">Ourselves</option>
+      </select>
+    </label>
+    <label>Expense id (debits) <input name="expense" type="text"></label>
+    <label>Earmark <input name="earmark" type="text" placeholder="events"></label>
+    <label>Running balance (optional) <input name="balance" type="text" inputmode="decimal"></label>
+    <div class="linkrow">
+      <label>Proof type <input name="proof_type" type="text" placeholder="txhash / stripe / lightning"></label>
+      <label>Proof value <input name="proof_value" type="text"></label>
+    </div>
+    <label>Memo <input name="memo" type="text"></label>
+    <button type="submit">Sign and record</button>
+  </form>
+  {{end}}
+</main>
+{{template "foot" .}}

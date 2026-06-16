@@ -464,6 +464,79 @@ func SettledLabelEvent(h, expenseID string, now time.Time) *nostr.Event {
 	}
 }
 
+// --- fiscal-host ledger (docs/nostr/money.md § fiscal hosts) ---
+
+// KindLedger is the community's application kind for fiscal-host ledger
+// entries (credit / debit / balance attestation). Append-only, signed by
+// the host, no group tag — a community-level financial record readable by
+// all members.
+const KindLedger = 3939
+
+// LedgerProof is an optional typed evidence reference on an entry.
+type LedgerProof struct {
+	Type  string // lightning | txhash | stripe | …
+	Value string
+}
+
+// CreditEntry builds a ledger credit (money in). The source attribution is
+// mandatory (MONEY-07); sourceType is identity | aggregate | self.
+func CreditEntry(amount, currency, source, sourceType, earmark, balance, memo string, proof *LedgerProof, now time.Time) *nostr.Event {
+	tags := nostr.Tags{
+		{"t", "credit"},
+		{"amount", amount},
+		{"currency", currency},
+		{"source", source, sourceType},
+	}
+	tags = appendLedgerExtras(tags, earmark, balance, proof)
+	return ledgerEvent(tags, memo, now)
+}
+
+// DebitEntry builds a ledger debit (a host paying an expense).
+func DebitEntry(amount, currency, expenseID, earmark, balance, memo string, proof *LedgerProof, now time.Time) *nostr.Event {
+	tags := nostr.Tags{
+		{"t", "debit"},
+		{"amount", amount},
+		{"currency", currency},
+		{"e", expenseID},
+	}
+	tags = appendLedgerExtras(tags, earmark, balance, proof)
+	return ledgerEvent(tags, memo, now)
+}
+
+// AttestationEntry builds a balance attestation (a checkpoint).
+func AttestationEntry(amount, currency, earmark, memo, proofOfFundsAddr, proofOfFundsSig string, now time.Time) *nostr.Event {
+	tags := nostr.Tags{
+		{"t", "attestation"},
+		{"amount", amount},
+		{"currency", currency},
+	}
+	if earmark != "" {
+		tags = append(tags, nostr.Tag{"earmark", earmark})
+	}
+	if proofOfFundsAddr != "" {
+		tags = append(tags, nostr.Tag{"proof_of_funds", proofOfFundsAddr, proofOfFundsSig})
+	}
+	return ledgerEvent(tags, memo, now)
+}
+
+func appendLedgerExtras(tags nostr.Tags, earmark, balance string, proof *LedgerProof) nostr.Tags {
+	if earmark != "" {
+		tags = append(tags, nostr.Tag{"earmark", earmark})
+	}
+	if balance != "" {
+		tags = append(tags, nostr.Tag{"balance", balance})
+	}
+	if proof != nil && proof.Type != "" {
+		tags = append(tags, nostr.Tag{"proof", proof.Type, proof.Value})
+	}
+	return tags
+}
+
+func ledgerEvent(tags nostr.Tags, memo string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindLedger, Tags: tags, Content: memo,
+		CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
 // --- calendar events (docs/nostr/channels.md § events, NIP-52) ---
 
 const (
