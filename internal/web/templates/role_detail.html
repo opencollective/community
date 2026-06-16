@@ -1,0 +1,43 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>{{.Role.Name}}</h1>
+    <a href="/roles">All roles</a>
+  </header>
+  <form method="post" action="/roles/{{.Role.Name}}" class="card appcard">
+    {{if not .Role.IsDefault}}
+    <label>Name <input name="name" type="text" value="{{.Role.Name}}"></label>
+    {{else}}
+    <p class="muted">Default role — rename is unavailable; recolour and permissions can change.</p>
+    {{end}}
+    <label>Color <input name="color" type="text" value="{{.Role.Color}}" placeholder="#1869F5"></label>
+    <h3>Permissions</h3>
+    {{range .Perms}}
+    <label class="check"><input type="checkbox" name="perm" value="{{.Key}}" {{if .On}}checked{{end}}> {{.Label}}</label>
+    {{end}}
+    <button type="submit">Save</button>
+  </form>
+
+  <h2>Members</h2>
+  <ul class="memberlist">
+    {{range .Members}}
+    <li>@{{.}}
+      <form method="post" action="/roles/{{$.Role.Name}}/members" class="inline">
+        <input type="hidden" name="username" value="{{.}}"><input type="hidden" name="remove" value="1">
+        <button type="submit" class="secondary small">Remove</button>
+      </form>
+    </li>
+    {{else}}<li class="muted">No members.</li>{{end}}
+  </ul>
+  <form method="post" action="/roles/{{.Role.Name}}/members" class="inline">
+    <input name="username" type="text" placeholder="username" required>
+    <button type="submit">Add member</button>
+  </form>
+
+  {{if not .Role.IsDefault}}
+  <form method="post" action="/roles/{{.Role.Name}}/delete">
+    <button type="submit" class="secondary">Delete this role</button>
+  </form>
+  {{end}}
+</main>
+{{template "foot" .}}

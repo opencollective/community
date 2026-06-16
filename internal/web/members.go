@@ -22,6 +22,7 @@ func (a *App) membersPage(w http.ResponseWriter, r *http.Request, c *store.Commu
 	type row struct {
 		Username, Name string
 		Roles          []string
+		Overflow       int
 	}
 	rows := make([]row, 0, len(members))
 	for _, m := range members {
@@ -35,7 +36,13 @@ func (a *App) membersPage(w http.ResponseWriter, r *http.Request, c *store.Commu
 		if a.isAdmin(c, m.ID) {
 			badges = append([]string{"admin"}, badges...)
 		}
-		rows = append(rows, row{Username: m.Username, Name: m.Name, Roles: badges})
+		// Badge overflow: show the first two, then "+n" (ROLE-07).
+		overflow := 0
+		if len(badges) > 2 {
+			overflow = len(badges) - 2
+			badges = badges[:2]
+		}
+		rows = append(rows, row{Username: m.Username, Name: m.Name, Roles: badges, Overflow: overflow})
 	}
 	pending, err := c.PendingApplications()
 	if err != nil {

@@ -1,0 +1,29 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Roles</h1>
+    <a href="/members">Members</a>
+    <a href="/">Home</a>
+  </header>
+  <ul class="memberlist">
+    {{range .Roles}}
+    <li>
+      <a href="/roles/{{.Name}}"><strong>{{.Name}}</strong></a>
+      <span class="muted">{{.Count}} member{{if ne .Count 1}}s{{end}}{{if .IsDefault}} · default{{end}}</span>
+      {{range .Permissions}}<span class="pill">{{.}}</span>{{end}}
+    </li>
+    {{end}}
+  </ul>
+  {{if .CanManage}}
+  <h2>Create a role</h2>
+  <form method="post" action="/roles" class="card appcard">
+    <label>Name <input name="name" type="text" required></label>
+    <label>Color <input name="color" type="text" placeholder="#1869F5"></label>
+    {{range .Permissions}}
+    <label class="check"><input type="checkbox" name="perm" value="{{.Key}}"> {{.Label}}</label>
+    {{end}}
+    <button type="submit">Create role</button>
+  </form>
+  {{end}}
+</main>
+{{template "foot" .}}

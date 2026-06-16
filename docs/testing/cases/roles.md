@@ -4,8 +4,11 @@ Flow reference: [flows/roles.md](../../flows/roles.md)
 
 ### ROLE-01 — defaults exist and are protected
 Given a completed setup
-Then roles steward, moderator, member, follower exist with documented default permissions
-And none of them can be deleted (rename and recolor are allowed)
+Then roles steward, moderator, member, follower, fiscal host exist with documented default permissions
+And none of them can be deleted
+And they can be recoloured and re-permissioned
+(default *rename* is deferred past v1 — code references defaults by name;
+custom roles can be renamed)
 
 ### ROLE-02 — only manage-roles holders manage roles
 Given a plain member

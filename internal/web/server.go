@@ -217,6 +217,13 @@ func (a *App) Handler() http.Handler {
 
 	mux.HandleFunc("GET /log", a.requireAdmin(a.logPage))
 
+	mux.HandleFunc("GET /roles", a.requireMember(a.rolesPage))
+	mux.HandleFunc("POST /roles", a.requireManageRoles(a.roleCreate))
+	mux.HandleFunc("GET /roles/{name}", a.requireMember(a.roleDetail))
+	mux.HandleFunc("POST /roles/{name}", a.requireManageRoles(a.roleUpdate))
+	mux.HandleFunc("POST /roles/{name}/members", a.requireManageRoles(a.roleAssign))
+	mux.HandleFunc("POST /roles/{name}/delete", a.requireManageRoles(a.roleDelete))
+
 	mux.HandleFunc("GET /settings/community", a.requireAdmin(a.settingsPage))
 	mux.HandleFunc("POST /settings/channels/{slug}", a.requireAdmin(a.settingsChannel))
 	mux.HandleFunc("POST /settings/posts/{type}", a.requireAdmin(a.settingsPolicy))

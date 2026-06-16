@@ -171,9 +171,10 @@ func (a *App) publishCommunityEvents(c *store.Community) {
 	name, _ := c.Setting(setName)
 	desc, _ := c.Setting(setDescription)
 	icon, _ := c.Setting(setIcon)
+	mods, _ := c.RolePubkeys("steward")
 	err = p.PublishAs(ctx, community, claim,
 		publish.ProfileEvent(name, desc, icon, a.Now()),
-		publish.CommunityDefinitionEvent(c.Slug, name, desc, icon, nil, a.Now()),
+		publish.CommunityDefinitionEvent(c.Slug, name, desc, icon, mods, a.Now()),
 	)
 	if err != nil {
 		a.Log.Error("publish community events", "err", err)

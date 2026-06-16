@@ -12,7 +12,7 @@
     <li>
       <strong>{{if .Name}}{{.Name}}{{else}}{{.Username}}{{end}}</strong>
       <span class="muted">@{{.Username}}</span>
-      {{range .Roles}}<span class="pill">{{.}}</span>{{end}}
+      {{range .Roles}}<span class="pill">{{.}}</span>{{end}}{{if .Overflow}}<span class="pill">+{{.Overflow}}</span>{{end}}
     </li>
     {{else}}
     <li class="muted">No members match.</li>
