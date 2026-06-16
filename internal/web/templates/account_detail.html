@@ -1,0 +1,22 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>{{.Account.Username}}</h1>
+    <a href="/accounts">All accounts</a>
+  </header>
+  {{if eq .Error "sent"}}<p class="hint">A claim code was emailed.</p>{{end}}
+  {{if eq .Error "email"}}<p class="error">Enter a valid email.</p>{{end}}
+  {{if .Claimed}}
+  <p class="sub">This account has been claimed. You no longer control it.</p>
+  {{else}}
+  <p class="sub">Unclaimed — you control it. Hand it over by emailing the owner
+  a claim code.</p>
+  <form method="post" action="/accounts/{{.Account.Username}}/claim-email" class="card appcard">
+    <label>Owner's email <input name="email" type="email" value="{{.ClaimEmail}}" required></label>
+    <button type="submit">Send claim code</button>
+    {{if .ClaimEmail}}<p class="hint">Pending claim to {{.ClaimEmail}}. Setting a
+    new address replaces it.</p>{{end}}
+  </form>
+  {{end}}
+</main>
+{{template "foot" .}}

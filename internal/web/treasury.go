@@ -318,7 +318,7 @@ func (a *App) ledgerSubmit(w http.ResponseWriter, r *http.Request, c *store.Comm
 		// A named third-party source becomes a claimable contributor
 		// identity (MONEY-07, UNCL-01); aggregates and self stay labels.
 		if sourceType == "identity" {
-			a.ensureSourceIdentity(c, source)
+			a.ensureSourceIdentity(c, source, viewer.ID)
 		}
 		evt = publish.CreditEntry(amount, currency, source, sourceType, earmark, balance, memo, proof, a.Now())
 	case "debit":
@@ -339,9 +339,9 @@ func (a *App) ledgerSubmit(w http.ResponseWriter, r *http.Request, c *store.Comm
 var srcSlug = regexp.MustCompile(`[^a-z0-9]+`)
 
 // ensureSourceIdentity find-or-creates an unclaimed identity for a named
-// credit source (UNCL-01: creation by attribution). The full claim flow is
-// a later milestone.
-func (a *App) ensureSourceIdentity(c *store.Community, name string) {
+// credit source (UNCL-01: creation by attribution). The attributing host
+// becomes its first manager, so it is claimable later.
+func (a *App) ensureSourceIdentity(c *store.Community, name string, creatorID int64) {
 	base := strings.Trim(srcSlug.ReplaceAllString(strings.ToLower(name), "-"), "-")
 	if base == "" || identity.ValidateUsername(base) != nil {
 		return
@@ -367,6 +367,7 @@ func (a *App) ensureSourceIdentity(c *store.Community, name string) {
 		return
 	}
 	_ = c.UpdateProfile(ident.ID, name, false)
+	_ = c.AddManager(ident.ID, creatorID, creatorID, a.Now())
 }
 
 func (a *App) settingsTreasury(w http.ResponseWriter, r *http.Request, c *store.Community, _ *store.Identity) {

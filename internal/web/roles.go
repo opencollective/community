@@ -153,6 +153,14 @@ func (a *App) roleAssign(w http.ResponseWriter, r *http.Request, c *store.Commun
 	if r.FormValue("remove") == "1" {
 		_ = c.RemoveRoleByID(role.ID, target.ID)
 	} else {
+		// hold_funds requires an operable account — claimed or managed
+		// (UNCL-05). An unclaimed, unmanaged account can't be a host.
+		if contains(role.Permissions, store.PermHoldFunds) && target.Status != "active" {
+			if managed, _ := c.IsManaged(target.ID); !managed {
+				http.Redirect(w, r, "/roles/"+role.Name+"?err=unclaimed", http.StatusSeeOther)
+				return
+			}
+		}
 		_ = c.AssignRoleByID(role.ID, target.ID)
 	}
 	a.afterRoleChange(c)

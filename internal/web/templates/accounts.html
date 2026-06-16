@@ -1,0 +1,30 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Accounts you manage</h1>
+    <a href="/">Home</a>
+  </header>
+  {{if eq .Error "taken"}}<p class="error">That username is taken.</p>{{end}}
+  {{if eq .Error "invalid"}}<p class="error">A name and a valid username are required.</p>{{end}}
+  <ul class="memberlist">
+    {{range .Managed}}
+    <li>
+      <a href="/accounts/{{.Username}}"><strong>{{if .Name}}{{.Name}}{{else}}{{.Username}}{{end}}</strong></a>
+      <span class="muted">@{{.Username}}</span>
+      {{if ne .Status "active"}}<span class="pill">unclaimed</span>{{end}}
+    </li>
+    {{else}}
+    <li class="muted">You don't manage any accounts yet.</li>
+    {{end}}
+  </ul>
+  <h2>Create an account for someone</h2>
+  <form method="post" action="/accounts" class="card appcard">
+    <label>Name <input name="name" type="text" required></label>
+    <label>Username <input name="username" type="text" required></label>
+    <label class="check"><input type="checkbox" name="organization" value="1"> This is an organization</label>
+    <button type="submit">Create account</button>
+    <p class="hint">You control it until they claim it. Recognition and roles
+    can be assigned now; claiming hands over full control.</p>
+  </form>
+</main>
+{{template "foot" .}}

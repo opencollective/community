@@ -217,6 +217,13 @@ func (a *App) Handler() http.Handler {
 
 	mux.HandleFunc("GET /log", a.requireAdmin(a.logPage))
 
+	mux.HandleFunc("GET /accounts", a.requireMember(a.accountsPage))
+	mux.HandleFunc("POST /accounts", a.requireMember(a.accountCreate))
+	mux.HandleFunc("GET /accounts/claim", a.claimForm)
+	mux.HandleFunc("POST /accounts/claim", a.claimSubmit)
+	mux.HandleFunc("GET /accounts/{username}", a.requireMember(a.accountDetail))
+	mux.HandleFunc("POST /accounts/{username}/claim-email", a.requireMember(a.accountClaimEmail))
+
 	mux.HandleFunc("GET /roles", a.requireMember(a.rolesPage))
 	mux.HandleFunc("POST /roles", a.requireManageRoles(a.roleCreate))
 	mux.HandleFunc("GET /roles/{name}", a.requireMember(a.roleDetail))
