@@ -5,8 +5,9 @@
   {{if .IsMember}}
   <div class="actions">
     <a class="btn primary" href="/chat"># general</a>
+    <a class="btn" href="/channels/proposals">Proposals</a>
     <a class="btn" href="/members">Members</a>
-    <a class="link" href="/settings/apps">Apps</a>
+    <a class="link" href="/compose">New post</a>
   </div>
   {{else}}
   <div class="actions">
@@ -17,4 +18,23 @@
   <p class="hint"># general is where members hang out — apply to join the conversation.</p>
   {{end}}
 </main>
+<div class="page feed">
+  {{if .Announcements}}
+  <h2>Announcements</h2>
+  {{range .Announcements}}
+  <section class="card appcard"><p>{{.Content}}</p><span class="muted">{{.Date}}</span></section>
+  {{end}}
+  {{end}}
+  {{if .Blog}}
+  <h2>From the blog</h2>
+  {{range .Blog}}
+  <section class="card appcard">
+    <a href="/posts/{{.Slug}}"><strong>{{.Title}}</strong></a>
+    <p class="muted">{{.Summary}}</p>
+    <span class="muted">{{.Date}}</span>
+  </section>
+  {{end}}
+  <p class="hint"><a href="/feed.xml">RSS feed</a></p>
+  {{end}}
+</div>
 {{template "foot" .}}

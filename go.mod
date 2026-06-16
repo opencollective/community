@@ -4,7 +4,9 @@ go 1.26.4
 
 require (
 	github.com/fiatjaf/khatru v0.19.1
+	github.com/gomarkdown/markdown v0.0.0-20260614204949-e08cff860f76
 	github.com/mattn/go-sqlite3 v1.14.45
+	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/nbd-wtf/go-nostr v0.52.3
 	golang.org/x/crypto v0.53.0
 )
@@ -12,6 +14,7 @@ require (
 require (
 	github.com/ImVexed/fasturl v0.0.0-20230304231329-4e41488060f3 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.5 // indirect
@@ -25,6 +28,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/fasthttp/websocket v1.5.12 // indirect
 	github.com/fiatjaf/eventstore v0.17.5 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.1 // indirect

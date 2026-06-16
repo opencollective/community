@@ -35,5 +35,21 @@
     <p class="hint">Author never counts toward their own quorum · the admin always decides alone.</p>
   </section>
   {{end}}
+
+  <h2>Publishing policies</h2>
+  {{range .Policies}}
+  <section class="card appcard">
+    <form method="post" action="/settings/posts/{{.ContentType}}" class="inline channelrow">
+      <strong>{{.ContentType}}</strong>
+      <label>approvers
+        <input type="text" name="approve_roles" value="{{range $i, $r := .ApproveRoles}}{{if $i}},{{end}}{{$r}}{{end}}" size="18">
+      </label>
+      <label>required
+        <input type="number" name="approvals_required" value="{{.ApprovalsRequired}}" min="1" size="3">
+      </label>
+      <button type="submit" class="secondary small">Save</button>
+    </form>
+  </section>
+  {{end}}
 </main>
 {{template "foot" .}}

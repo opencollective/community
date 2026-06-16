@@ -419,6 +419,10 @@ func (a *App) setupCommunitySubmit(w http.ResponseWriter, r *http.Request, c *st
 		a.internalError(w, err)
 		return
 	}
+	if err := c.CreateDefaultPostPolicies(); err != nil {
+		a.internalError(w, err)
+		return
+	}
 	_, admin, err := a.adminIdentity(c)
 	if err != nil {
 		a.internalError(w, err)

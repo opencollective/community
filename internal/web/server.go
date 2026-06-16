@@ -172,6 +172,14 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /members/pending", a.requireMember(a.pendingPage))
 	mux.HandleFunc("POST /members/pending/{id}", a.requireMember(a.pendingDecide))
 
+	mux.HandleFunc("GET /compose", a.requireProposer(a.composeForm))
+	mux.HandleFunc("POST /compose", a.requireProposer(a.composeSubmit))
+	mux.HandleFunc("GET /posts/pending", a.requireMember(a.pendingPosts))
+	mux.HandleFunc("POST /posts/pending/{id}/{action}", a.requireMember(a.postsDecide))
+	mux.HandleFunc("GET /posts/{slug}", a.postPage)
+	mux.HandleFunc("GET /feed.xml", a.rssFeed)
+	mux.HandleFunc("GET /unsubscribe", a.unsubscribe)
+
 	mux.HandleFunc("GET /chat", a.requireMember(a.chatFragment))
 	mux.HandleFunc("POST /chat", a.requireMember(a.chatPost))
 	mux.HandleFunc("POST /chat/delete/{id}", a.requireMember(a.chatDelete))
@@ -185,6 +193,7 @@ func (a *App) Handler() http.Handler {
 
 	mux.HandleFunc("GET /settings/community", a.requireAdmin(a.settingsPage))
 	mux.HandleFunc("POST /settings/channels/{slug}", a.requireAdmin(a.settingsChannel))
+	mux.HandleFunc("POST /settings/posts/{type}", a.requireAdmin(a.settingsPolicy))
 
 	mux.HandleFunc("GET /settings/apps", a.requireUser(a.appsPage))
 	mux.HandleFunc("POST /settings/apps/url", a.requireUser(a.appsGenerateURL))
@@ -277,11 +286,14 @@ func (a *App) home(w http.ResponseWriter, r *http.Request) {
 	}
 	desc, _ := c.Setting(setDescription)
 	viewer := identityFrom(r)
+	announcements, blog := a.homeFeed(c)
 	a.render(w, "home.html", map[string]any{
-		"Title":       name,
-		"Name":        name,
-		"Description": desc,
-		"IsMember":    viewer != nil && a.memberLevel(c, viewer),
+		"Title":         name,
+		"Name":          name,
+		"Description":   desc,
+		"IsMember":      viewer != nil && a.memberLevel(c, viewer),
+		"Announcements": announcements,
+		"Blog":          blog,
 	})
 }
 

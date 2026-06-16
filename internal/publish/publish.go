@@ -262,35 +262,109 @@ func DeletionEvent(h, targetID string, now time.Time) *nostr.Event {
 
 // ApprovalEvent builds a kind 4550 approving a thread root — the same
 // signed-trail semantics as community publishing (ADR 0010). The approved
-// event's JSON travels in the content, NIP-72 style.
+// event's JSON travels in the content, NIP-72 style. An empty h omits the
+// group tag (publishing proposals are not group events).
 func ApprovalEvent(h string, root *nostr.Event, communityPubkey, communitySlug string, now time.Time) *nostr.Event {
 	raw, _ := json.Marshal(root)
-	return &nostr.Event{Kind: KindApproval,
-		Tags: nostr.Tags{
-			{"h", h},
-			{"a", fmt.Sprintf("%d:%s:%s", KindCommunityDefinition, communityPubkey, communitySlug)},
-			{"e", root.ID},
-			{"p", root.PubKey},
-			{"k", fmt.Sprint(root.Kind)},
-		},
-		Content:   string(raw),
-		CreatedAt: nostr.Timestamp(now.Unix()),
+	tags := nostr.Tags{}
+	if h != "" {
+		tags = append(tags, nostr.Tag{"h", h})
 	}
+	tags = append(tags,
+		nostr.Tag{"a", fmt.Sprintf("%d:%s:%s", KindCommunityDefinition, communityPubkey, communitySlug)},
+		nostr.Tag{"e", root.ID},
+		nostr.Tag{"p", root.PubKey},
+		nostr.Tag{"k", fmt.Sprint(root.Kind)},
+	)
+	return &nostr.Event{Kind: KindApproval, Tags: tags,
+		Content: string(raw), CreatedAt: nostr.Timestamp(now.Unix())}
 }
 
 // DeclineEvent builds a kind 1985 'declined' label with a reason
-// (CHAN-18).
+// (CHAN-18). An empty h omits the group tag.
 func DeclineEvent(h, rootID, reason string, now time.Time) *nostr.Event {
-	return &nostr.Event{Kind: KindLabel,
-		Tags: nostr.Tags{
-			{"h", h},
-			{"L", LabelNamespace},
-			{"l", "declined", LabelNamespace},
-			{"e", rootID},
-		},
-		Content:   reason,
-		CreatedAt: nostr.Timestamp(now.Unix()),
+	tags := nostr.Tags{}
+	if h != "" {
+		tags = append(tags, nostr.Tag{"h", h})
 	}
+	tags = append(tags,
+		nostr.Tag{"L", LabelNamespace},
+		nostr.Tag{"l", "declined", LabelNamespace},
+		nostr.Tag{"e", rootID},
+	)
+	return &nostr.Event{Kind: KindLabel, Tags: tags,
+		Content: reason, CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// --- publishing as the community (docs/nostr/publishing.md) ---
+
+const (
+	// KindAnnouncement is a community short note (NIP-01 kind 1).
+	KindAnnouncement = 1
+	// KindArticle is long-form content (NIP-23 kind 30023) — blog posts
+	// and newsletters.
+	KindArticle = 30023
+)
+
+// ContentKind maps a content type to its published Nostr kind.
+func ContentKind(contentType string) int {
+	if contentType == "announcement" {
+		return KindAnnouncement
+	}
+	return KindArticle
+}
+
+// ProposalEvent builds a draft signed by the proposer (PUB-02): a kind 1
+// (announcement) or kind 30023 (blog/newsletter) carrying the community
+// a-tag and a ["proposal", <type>] marker. The d tag (for 30023) is unique
+// so each submission is a distinct event — edits reset approvals (PUB-07).
+func ProposalEvent(contentType, title, content, communityPubkey, communitySlug, uniqueD string, now time.Time) *nostr.Event {
+	aTag := nostr.Tag{"a", fmt.Sprintf("%d:%s:%s", KindCommunityDefinition, communityPubkey, communitySlug)}
+	tags := nostr.Tags{{"proposal", contentType}, aTag}
+	kind := ContentKind(contentType)
+	if kind == KindArticle {
+		tags = append(tags, nostr.Tag{"d", uniqueD}, nostr.Tag{"title", title})
+	}
+	return &nostr.Event{Kind: kind, Tags: tags, Content: content,
+		CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// PublishedEvent builds the community-signed final artifact from an
+// approved proposal: the same content, crediting the author and
+// referencing the proposal (PUB-04/09). Newsletters carry a NIP-32
+// self-label so only they are emailed (ADR 0011).
+func PublishedEvent(contentType, title, content, slug, proposerPubkey, proposalID string, now time.Time) *nostr.Event {
+	kind := ContentKind(contentType)
+	tags := nostr.Tags{
+		{"p", proposerPubkey, "", "author"},
+		{"e", proposalID, "", "mention"},
+	}
+	if kind == KindArticle {
+		tags = append(tags,
+			nostr.Tag{"d", slug},
+			nostr.Tag{"title", title},
+			nostr.Tag{"published_at", fmt.Sprint(now.Unix())},
+		)
+	}
+	if contentType == "newsletter" {
+		tags = append(tags,
+			nostr.Tag{"L", LabelNamespace},
+			nostr.Tag{"l", "newsletter", LabelNamespace},
+		)
+	}
+	return &nostr.Event{Kind: kind, Tags: tags, Content: content,
+		CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// IsNewsletter reports whether a published article carries the newsletter
+// self-label.
+func IsNewsletter(evt *nostr.Event) bool {
+	for _, tag := range evt.Tags.GetAll([]string{"l", ""}) {
+		if len(tag) > 1 && tag[1] == "newsletter" {
+			return true
+		}
+	}
+	return false
 }
 
 // CommunityDefinitionEvent builds the NIP-72 kind 34550.

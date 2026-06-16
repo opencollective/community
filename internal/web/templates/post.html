@@ -1,0 +1,10 @@
+{{template "head" .}}
+<main class="page article">
+  <header class="pagehead">
+    <h1>{{.Post.Title}}</h1>
+    <a href="/">Home</a>
+  </header>
+  <p class="muted">{{.Post.Date}}{{if .Post.IsNews}} · newsletter{{end}}</p>
+  <div class="prose">{{.HTML}}</div>
+</main>
+{{template "foot" .}}

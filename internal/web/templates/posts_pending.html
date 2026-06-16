@@ -1,0 +1,35 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Pending posts</h1>
+    <a href="/compose" class="btn primary">New post</a>
+    <a href="/">Home</a>
+  </header>
+  {{if eq .Error "own"}}<p class="error">You can't approve your own proposal.</p>{{end}}
+  {{range .Proposals}}
+  <section class="card appcard">
+    <span class="pill">{{.TypeLabel}}</span>
+    {{if .Title}}<strong>{{.Title}}</strong>{{end}}
+    <span class="muted">proposed by @{{.Author}} · {{.Time}}</span>
+    <p>{{.Content}}</p>
+    <p class="muted">
+      {{if eq .Status "approved"}}approved — publishing…
+      {{else}}{{len .Approvers}} of {{.Required}} approvals
+        {{if .Approvers}}({{range $i, $u := .Approvers}}{{if $i}}, {{end}}@{{$u}}{{end}}){{end}}
+      {{end}}
+    </p>
+    {{if and $.CanDecide (eq .Status "pending")}}
+    <form method="post" action="/posts/pending/{{.ID}}/approve" class="inline">
+      <button type="submit">Approve and sign</button>
+    </form>
+    <form method="post" action="/posts/pending/{{.ID}}/decline" class="inline">
+      <input type="text" name="reason" placeholder="Reason">
+      <button type="submit" class="secondary">Decline</button>
+    </form>
+    {{end}}
+  </section>
+  {{else}}
+  <p class="muted">Nothing waiting for review.</p>
+  {{end}}
+</main>
+{{template "foot" .}}

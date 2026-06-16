@@ -1,0 +1,23 @@
+{{template "head" .}}
+<main class="wizard">
+  <section class="card">
+    <h1>New post as the community</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/compose">
+      <label for="content_type">Type</label>
+      <select id="content_type" name="content_type">
+        <option value="announcement" {{if eq .ContentType "announcement"}}selected{{end}}>Announcement (short note)</option>
+        <option value="blog" {{if eq .ContentType "blog"}}selected{{end}}>Blog post (RSS, not emailed)</option>
+        <option value="newsletter" {{if eq .ContentType "newsletter"}}selected{{end}}>Newsletter (emailed to followers)</option>
+      </select>
+      <label for="title">Title <span class="hint">(blog posts and newsletters)</span></label>
+      <input id="title" name="title" type="text" value="{{.FormTitle}}">
+      <label for="content">Content <span class="hint">(markdown)</span></label>
+      <textarea id="content" name="content" rows="10" required>{{.Content}}</textarea>
+      <button type="submit">Submit for approval</button>
+      <p class="hint">Publishes as the community once approved — signed with your
+      key as the proposal.</p>
+    </form>
+  </section>
+</main>
+{{template "foot" .}}

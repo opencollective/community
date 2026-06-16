@@ -28,9 +28,36 @@ func (a *App) settingsPage(w http.ResponseWriter, r *http.Request, c *store.Comm
 		a.internalError(w, err)
 		return
 	}
+	policies, err := c.AllPostPolicies()
+	if err != nil {
+		a.internalError(w, err)
+		return
+	}
 	a.render(w, "settings_community.html", map[string]any{
-		"Title": "Community settings", "Channels": channels,
+		"Title": "Community settings", "Channels": channels, "Policies": policies,
 	})
+}
+
+// settingsPolicy updates a publishing section's approval policy (PUB-11).
+func (a *App) settingsPolicy(w http.ResponseWriter, r *http.Request, c *store.Community, _ *store.Identity) {
+	ct := r.PathValue("type")
+	cur, err := c.PostPolicyFor(ct)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	var roles []string
+	for _, role := range strings.Split(r.FormValue("approve_roles"), ",") {
+		if role = strings.TrimSpace(role); role != "" {
+			roles = append(roles, role)
+		}
+	}
+	required := atoiDefault(r.FormValue("approvals_required"), cur.ApprovalsRequired)
+	if err := c.SetPostPolicy(ct, roles, required); err != nil {
+		a.internalError(w, err)
+		return
+	}
+	http.Redirect(w, r, "/settings/community", http.StatusSeeOther)
 }
 
 func (a *App) settingsChannel(w http.ResponseWriter, r *http.Request, c *store.Community, _ *store.Identity) {
