@@ -1,0 +1,24 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Expenses</h1>
+    {{if .IsMember}}
+    <a href="/channels/expenses?status=pending">Pending</a>
+    <a href="/channels/expenses?status=approved">Approved</a>
+    <a href="/channels/expenses?status=paid">Paid</a>
+    <a href="/channels/expenses/new" class="btn primary">New expense</a>
+    {{end}}
+    <a href="/treasury">Treasury</a>
+  </header>
+  {{range .Expenses}}
+  <section class="card appcard">
+    <a href="/channels/expenses/t/{{.ID}}"><strong>{{.Title}}</strong></a>
+    <span class="muted">{{.Amount}} {{.Currency}}{{if .Tax}} · incl. tax {{.Tax}}{{end}}</span>
+    <span class="pill">{{.Status}}</span>
+    <p class="muted">by @{{.Author}}{{if .Category}} · {{.Category}}{{end}}</p>
+  </section>
+  {{else}}
+  <p class="muted">No expenses.</p>
+  {{end}}
+</main>
+{{template "foot" .}}

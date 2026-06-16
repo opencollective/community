@@ -189,6 +189,13 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("POST /chat/delete/{id}", a.requireMember(a.chatDelete))
 	mux.HandleFunc("POST /chat/mute/{username}", a.requireMember(a.chatMute))
 
+	mux.HandleFunc("GET /channels/expenses", a.expenseList)
+	mux.HandleFunc("GET /channels/expenses/new", a.expenseNewForm)
+	mux.HandleFunc("POST /channels/expenses", a.expenseCreate)
+	mux.HandleFunc("GET /channels/expenses/t/{id}", a.expenseView)
+	mux.HandleFunc("POST /channels/expenses/t/{id}/{action}", a.expenseAct)
+	mux.HandleFunc("GET /contributors", a.contributorsPage)
+
 	mux.HandleFunc("GET /channels/events", a.eventList)
 	mux.HandleFunc("GET /channels/events/new", a.eventNewForm)
 	mux.HandleFunc("POST /channels/events", a.eventCreate)

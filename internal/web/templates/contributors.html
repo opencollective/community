@@ -1,0 +1,16 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Contributors</h1>
+    <a href="/treasury">Treasury</a>
+    <a href="/">Home</a>
+  </header>
+  <ul class="memberlist">
+    {{range .Contributions}}
+    <li><strong>@{{.Contributor}}</strong> <span class="muted">{{printf "%.2f" .Amount}} {{.Currency}}</span></li>
+    {{else}}
+    <li class="muted">No contributions recorded yet.</li>
+    {{end}}
+  </ul>
+</main>
+{{template "foot" .}}

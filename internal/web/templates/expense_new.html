@@ -1,0 +1,41 @@
+{{template "head" .}}
+<main class="wizard">
+  <section class="card">
+    <h1>New expense</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/channels/expenses">
+      <label for="title">Description</label>
+      <input id="title" name="title" type="text" required autofocus>
+      <label for="content">Details</label>
+      <textarea id="content" name="content" rows="2"></textarea>
+      <div class="linkrow">
+        <label>Amount <input name="amount" type="text" inputmode="decimal" required></label>
+        <label>Currency <input name="currency" type="text" value="EUR" size="5" required></label>
+      </div>
+      <div class="linkrow">
+        <label>Tax amount (optional) <input name="tax_amount" type="text" inputmode="decimal"></label>
+        <label>Rate % <input name="tax_rate" type="text" size="4"></label>
+      </div>
+      <label for="category">Category (optional)</label>
+      <input id="category" name="category" type="text" placeholder="e.g. events">
+      <label for="iban">Payout — IBAN</label>
+      <input id="iban" name="iban" type="text">
+      <input name="iban_holder" type="text" placeholder="Account holder name">
+      <label for="lightning">Payout — Lightning address</label>
+      <input id="lightning" name="lightning" type="text">
+      <label for="receipt">Receipt URL</label>
+      <input id="receipt" name="receipt" type="url" placeholder="https://…">
+      {{if .Channel.Overridable}}
+      <label for="visibility">Visibility</label>
+      <select id="visibility" name="visibility">
+        <option value="members">Members only</option>
+        <option value="public">Public (payout details stay members-only)</option>
+      </select>
+      {{end}}
+      <button type="submit">Submit expense</button>
+      <p class="hint">Reviewed by 2 stewards (or the admin). Payout details and
+      receipts are visible to members only.</p>
+    </form>
+  </section>
+</main>
+{{template "foot" .}}

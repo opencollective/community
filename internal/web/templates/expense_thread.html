@@ -1,0 +1,77 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>{{.E.Title}}</h1>
+    <a href="/channels/expenses">Back to expenses</a>
+  </header>
+  <section class="card appcard">
+    <p><strong>{{.E.Amount}} {{.E.Currency}}</strong>{{if .E.Tax}} · incl. tax {{.E.Tax}}{{end}}
+      {{if .E.Category}} · {{.E.Category}}{{end}}</p>
+    <p>{{.E.Content}}</p>
+    <p class="muted">by @{{.E.Author}}
+      {{if $.IsMember}}<span class="pill">{{.E.Status}}</span><span class="pill">{{.E.Visibility}}</span>{{end}}</p>
+    {{if .IsMember}}
+    {{if .E.Payouts}}
+    <h3>Payout (members only)</h3>
+    <ul class="memberlist">
+      {{range .E.Payouts}}<li><strong>{{.Type}}</strong> <span class="mono">{{.Value}}</span> {{.Extra}}</li>{{end}}
+    </ul>
+    {{end}}
+    {{if .E.Receipts}}
+    <p class="muted">Receipts: {{range .E.Receipts}}<a href="{{.}}">receipt</a> {{end}}</p>
+    {{end}}
+    {{end}}
+
+    {{if and .CanDecide (eq .E.Status "pending")}}
+    <form method="post" action="/channels/expenses/t/{{.E.ID}}/approve" class="inline"><button type="submit">Approve</button></form>
+    <form method="post" action="/channels/expenses/t/{{.E.ID}}/decline" class="inline"><input type="text" name="reason" placeholder="Reason"><button type="submit" class="secondary">Decline</button></form>
+    {{else if eq .E.Status "pending"}}
+    <p class="muted">{{len .E.Approvers}} of {{.E.Required}} approvals</p>
+    {{end}}
+  </section>
+
+  {{if and .IsMember (ne .E.Status "pending")}}
+  <section class="card appcard">
+    <h3>Payments</h3>
+    {{range .E.Payments}}
+    <div class="msg">
+      <strong>@{{.Payer}}</strong> paid {{.Amount}} {{.Currency}} {{if .Method}}via {{.Method}}{{end}}
+      {{if .Confirmed}}<span class="pill">confirmed</span>{{else}}<span class="pill">unconfirmed{{if .Stale}} (7+ days){{end}}</span>{{end}}
+      <span class="muted">{{.Time}}</span>
+      {{if and $.IsAuthor (not .Confirmed)}}
+      <form method="post" action="/channels/expenses/t/{{$.E.ID}}/confirm" class="inline">
+        <input type="hidden" name="claim" value="{{.ClaimID}}">
+        <button type="submit" class="secondary small">Confirm reception</button>
+      </form>
+      {{end}}
+    </div>
+    {{else}}<p class="muted">No payments yet.</p>{{end}}
+
+    {{if eq .E.Status "approved"}}
+    <form method="post" action="/channels/expenses/t/{{.E.ID}}/pay" class="inline">
+      <input name="amount" type="text" inputmode="decimal" placeholder="Amount" required>
+      <input name="method" type="text" placeholder="Method" size="10">
+      <button type="submit">I paid this</button>
+    </form>
+    {{if .IsAuthor}}
+    <form method="post" action="/channels/expenses/t/{{.E.ID}}/settle" class="inline">
+      <button type="submit" class="secondary">Mark settled (paid)</button>
+    </form>
+    {{end}}
+    {{end}}
+  </section>
+  {{end}}
+
+  <section class="chatlog">
+    {{range .E.Replies}}
+    <div class="msg"><strong>@{{.Author}}</strong> <span class="muted">{{.Time}}</span><p>{{.Content}}</p></div>
+    {{end}}
+  </section>
+  {{if .IsMember}}
+  <form method="post" action="/channels/expenses/t/{{.E.ID}}/reply" class="chatform">
+    <input type="text" name="content" placeholder="Comment…" required>
+    <button type="submit">Comment</button>
+  </form>
+  {{end}}
+</main>
+{{template "foot" .}}

@@ -30,20 +30,23 @@ func (c *Community) CreateDefaultChannels(now time.Time) error {
 	rows := []struct {
 		slug, name, typ, template, vis string
 		enabled, overridable           bool
+		approvals                      int
 	}{
-		{"general", "general", "chat", "", "members", true, false},
-		{"proposals", "Proposals", "threads", "proposal", "members", true, false},
-		{"requests", "Requests", "threads", "request", "public", false, true},
-		{"events", "Events", "threads", "event", "public", false, true},
+		{"general", "general", "chat", "", "members", true, false, 1},
+		{"proposals", "Proposals", "threads", "proposal", "members", true, false, 1},
+		{"requests", "Requests", "threads", "request", "public", false, true, 1},
+		{"events", "Events", "threads", "event", "public", false, true, 1},
+		// Expenses default to 2 steward approvals — it's money (money.md).
+		{"expenses", "Expenses", "threads", "expense", "members", false, true, 2},
 	}
 	for i, r := range rows {
 		_, err := c.DB.Exec(`
 			INSERT INTO channels (slug, name, type, template, enabled, builtin,
 				default_visibility, overridable, approve_roles, approvals_required,
 				position, created_at)
-			VALUES (?, ?, ?, ?, ?, 1, ?, ?, 'steward', 1, ?, ?)`,
+			VALUES (?, ?, ?, ?, ?, 1, ?, ?, 'steward', ?, ?, ?)`,
 			r.slug, r.name, r.typ, r.template, boolInt(r.enabled),
-			r.vis, boolInt(r.overridable), i, now.Unix())
+			r.vis, boolInt(r.overridable), r.approvals, i, now.Unix())
 		if err != nil {
 			return err
 		}

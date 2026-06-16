@@ -368,6 +368,102 @@ func PublishedEvent(contentType, title, content, slug, proposerPubkey, proposalI
 		CreatedAt: nostr.Timestamp(now.Unix())}
 }
 
+// --- expenses and payments (docs/nostr/money.md) ---
+
+// PayoutMethod is one way to be paid (iban / bitcoin / lightning / eth / other).
+type PayoutMethod struct {
+	Type  string // iban | bitcoin | lightning | eth | other
+	Value string
+	Extra string // IBAN holder name, chain, etc.
+}
+
+// ExpenseFields carries the expense template's structured data. Payout
+// details and receipts are members-only at render time regardless of
+// thread visibility (docs/nostr/money.md).
+type ExpenseFields struct {
+	Title     string
+	Content   string
+	Amount    string // decimal string
+	Currency  string
+	TaxAmount string // optional
+	TaxRate   string // optional, percent
+	Category  string // matches credit earmarks
+	Payouts   []PayoutMethod
+	Receipts  []string // Blossom URLs
+}
+
+// ExpenseRootEvent builds an expense thread root (kind 11) carrying money
+// tags (MONEY-01). It reuses the generic thread framework's h-tag,
+// visibility, approval, reply and reaction machinery.
+func ExpenseRootEvent(h, visibility string, f ExpenseFields, now time.Time) *nostr.Event {
+	tags := nostr.Tags{
+		{"h", h},
+		{"visibility", visibility},
+		{"title", f.Title},
+		{"amount", f.Amount},
+		{"currency", f.Currency},
+	}
+	if f.TaxAmount != "" {
+		tags = append(tags, nostr.Tag{"tax", f.TaxAmount, f.TaxRate})
+	}
+	if f.Category != "" {
+		tags = append(tags, nostr.Tag{"category", f.Category})
+	}
+	for _, pm := range f.Payouts {
+		tags = append(tags, nostr.Tag{"payout", pm.Type, pm.Value, pm.Extra})
+	}
+	for _, r := range f.Receipts {
+		tags = append(tags, nostr.Tag{"receipt", r})
+	}
+	return &nostr.Event{Kind: KindThreadRoot, Tags: tags, Content: f.Content,
+		CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// PaymentClaimEvent builds a payer's claim — a kind 1111 comment with
+// machine tags (MONEY-03). Members only.
+func PaymentClaimEvent(h, expenseID, amount, currency, method, note string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindComment,
+		Tags: nostr.Tags{
+			{"h", h},
+			{"e", expenseID, "", "root"},
+			{"t", "payment-claim"},
+			{"amount", amount},
+			{"currency", currency},
+			{"method", method},
+		},
+		Content:   note,
+		CreatedAt: nostr.Timestamp(now.Unix()),
+	}
+}
+
+// PaymentConfirmEvent builds the author's reception confirmation of one
+// claim (MONEY-03). Signed by the expense author.
+func PaymentConfirmEvent(h, expenseID, claimID string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindComment,
+		Tags: nostr.Tags{
+			{"h", h},
+			{"e", expenseID, "", "root"},
+			{"claim", claimID},
+			{"t", "payment-confirm"},
+		},
+		CreatedAt: nostr.Timestamp(now.Unix()),
+	}
+}
+
+// SettledLabelEvent marks an expense paid — a kind 1985 'paid' label the
+// author signs once settlement is complete (MONEY-04).
+func SettledLabelEvent(h, expenseID string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindLabel,
+		Tags: nostr.Tags{
+			{"h", h},
+			{"L", LabelNamespace},
+			{"l", "paid", LabelNamespace},
+			{"e", expenseID},
+		},
+		CreatedAt: nostr.Timestamp(now.Unix()),
+	}
+}
+
 // --- calendar events (docs/nostr/channels.md § events, NIP-52) ---
 
 const (
