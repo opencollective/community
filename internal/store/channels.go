@@ -34,6 +34,7 @@ func (c *Community) CreateDefaultChannels(now time.Time) error {
 		{"general", "general", "chat", "", "members", true, false},
 		{"proposals", "Proposals", "threads", "proposal", "members", true, false},
 		{"requests", "Requests", "threads", "request", "public", false, true},
+		{"events", "Events", "threads", "event", "public", false, true},
 	}
 	for i, r := range rows {
 		_, err := c.DB.Exec(`

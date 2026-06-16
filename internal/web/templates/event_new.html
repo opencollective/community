@@ -1,0 +1,42 @@
+{{template "head" .}}
+<main class="wizard">
+  <section class="card">
+    <h1>New event</h1>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="post" action="/channels/events">
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" required autofocus>
+      <label for="content">Description</label>
+      <textarea id="content" name="content" rows="3"></textarea>
+      <label for="start">Starts</label>
+      <input id="start" name="start" type="datetime-local" required>
+      <label for="end">Ends</label>
+      <input id="end" name="end" type="datetime-local" required>
+      <label class="check"><input type="checkbox" name="all_day" value="1"> All day</label>
+      <label for="repeats">Repeats</label>
+      <select id="repeats" name="repeats">
+        <option value="none">Does not repeat</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+        <option value="weekday">Every week on this weekday</option>
+        <option value="nth">Monthly on this weekday-of-month</option>
+      </select>
+      <label for="location">Location or online URL</label>
+      <input id="location" name="location" type="text">
+      <label for="external">External event page (optional)</label>
+      <input id="external" name="external" type="url" placeholder="https://…">
+      <label for="image">Cover image URL (optional)</label>
+      <input id="image" name="image" type="url" placeholder="https://…">
+      {{if .Channel.Overridable}}
+      <label for="visibility">Visibility</label>
+      <select id="visibility" name="visibility">
+        <option value="public" {{if eq .Channel.DefaultVisibility "public"}}selected{{end}}>Public</option>
+        <option value="members" {{if eq .Channel.DefaultVisibility "members"}}selected{{end}}>Members only</option>
+      </select>
+      {{end}}
+      <button type="submit">Submit for approval</button>
+    </form>
+  </section>
+</main>
+{{template "foot" .}}

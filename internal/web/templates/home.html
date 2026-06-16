@@ -25,6 +25,16 @@
   {{end}}
 </main>
 <div class="page feed">
+  {{if .Upcoming}}
+  <h2>Upcoming events</h2>
+  {{range .Upcoming}}
+  <section class="card appcard">
+    <a href="/channels/events/t/{{.ID}}"><strong>{{.Title}}</strong></a>
+    <span class="muted">{{.When}}{{if .Location}} · {{.Location}}{{end}}</span>
+  </section>
+  {{end}}
+  <p class="hint"><a href="/channels/events/public.ics">Subscribe to events (.ics)</a></p>
+  {{end}}
   {{if .Announcements}}
   <h2>Announcements</h2>
   {{range .Announcements}}

@@ -1,0 +1,47 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>{{.E.Title}}</h1>
+    <a href="/channels/events">Back to events</a>
+  </header>
+  <section class="card appcard">
+    {{if .E.Cancelled}}<p class="error">This event is cancelled.</p>{{end}}
+    <p class="muted">{{.E.When}}</p>
+    {{if .E.Location}}<p>{{.E.Location}}</p>{{end}}
+    {{if .E.External}}<p><a href="{{.E.External}}">Event page</a></p>{{end}}
+    {{if .E.Image}}<p><img src="{{.E.Image}}" alt="cover" style="max-width:100%"></p>{{end}}
+    <p>{{.E.Content}}</p>
+    <p class="muted">by @{{.E.Author}}
+      {{if $.IsMember}}<span class="pill">{{.E.Status}}</span><span class="pill">{{.E.Visibility}}</span>{{end}}</p>
+    {{if .IsMember}}
+    <p class="muted">going: {{range .E.Going}}@{{.}} {{end}}({{index .E.Counts "accepted"}})</p>
+    <form method="post" action="/channels/events/t/{{.E.ID}}/rsvp" class="inline">
+      <input type="hidden" name="status" value="accepted"><button type="submit">Going</button>
+    </form>
+    <form method="post" action="/channels/events/t/{{.E.ID}}/rsvp" class="inline">
+      <input type="hidden" name="status" value="tentative"><button type="submit" class="secondary">Interested</button>
+    </form>
+    <form method="post" action="/channels/events/t/{{.E.ID}}/rsvp" class="inline">
+      <input type="hidden" name="status" value="declined"><button type="submit" class="secondary">Not going</button>
+    </form>
+    {{if and .CanDecide (eq .E.Status "pending")}}
+    <form method="post" action="/channels/events/t/{{.E.ID}}/approve" class="inline"><button type="submit">Approve</button></form>
+    {{end}}
+    {{if not .E.Cancelled}}
+    <form method="post" action="/channels/events/t/{{.E.ID}}/cancel" class="inline"><button type="submit" class="secondary">Cancel event</button></form>
+    {{end}}
+    {{end}}
+  </section>
+  <section class="chatlog">
+    {{range .E.Replies}}
+    <div class="msg"><strong>@{{.Author}}</strong> <span class="muted">{{.Time}}</span><p>{{.Content}}</p></div>
+    {{else}}<p class="muted">No replies yet.</p>{{end}}
+  </section>
+  {{if .IsMember}}
+  <form method="post" action="/channels/events/t/{{.E.ID}}/reply" class="chatform">
+    <input type="text" name="content" placeholder="Reply…" maxlength="5000" required>
+    <button type="submit">Reply</button>
+  </form>
+  {{end}}
+</main>
+{{template "foot" .}}

@@ -189,6 +189,15 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("POST /chat/delete/{id}", a.requireMember(a.chatDelete))
 	mux.HandleFunc("POST /chat/mute/{username}", a.requireMember(a.chatMute))
 
+	mux.HandleFunc("GET /channels/events", a.eventList)
+	mux.HandleFunc("GET /channels/events/new", a.eventNewForm)
+	mux.HandleFunc("POST /channels/events", a.eventCreate)
+	mux.HandleFunc("GET /channels/events/t/{id}", a.eventView)
+	mux.HandleFunc("POST /channels/events/t/{id}/{action}", a.eventAct)
+	mux.HandleFunc("GET /channels/events/public.ics", a.publicICS)
+	mux.HandleFunc("GET /channels/events/members.ics", a.membersICS)
+	mux.HandleFunc("POST /channels/events/subscribe", a.requireMember(a.feedRegenerate))
+
 	mux.HandleFunc("GET /channels/{slug}", a.channelList)
 	mux.HandleFunc("GET /channels/{slug}/new", a.channelNewForm)
 	mux.HandleFunc("POST /channels/{slug}", a.channelCreate)
@@ -290,15 +299,17 @@ func (a *App) home(w http.ResponseWriter, r *http.Request) {
 	}
 	desc, _ := c.Setting(setDescription)
 	viewer := identityFrom(r)
+	isMember := viewer != nil && a.memberLevel(c, viewer)
 	announcements, blog := a.homeFeed(c)
 	a.render(w, "home.html", map[string]any{
 		"Title":         name,
 		"Name":          name,
 		"Description":   desc,
 		"Links":         a.currentProfile(c).Links,
-		"IsMember":      viewer != nil && a.memberLevel(c, viewer),
+		"IsMember":      isMember,
 		"Announcements": announcements,
 		"Blog":          blog,
+		"Upcoming":      a.upcomingEvents(c, isMember),
 	})
 }
 

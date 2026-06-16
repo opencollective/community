@@ -368,6 +368,100 @@ func PublishedEvent(contentType, title, content, slug, proposerPubkey, proposalI
 		CreatedAt: nostr.Timestamp(now.Unix())}
 }
 
+// --- calendar events (docs/nostr/channels.md § events, NIP-52) ---
+
+const (
+	// KindDateEvent is a NIP-52 all-day calendar event (kind 31922).
+	KindDateEvent = 31922
+	// KindTimeEvent is a NIP-52 time-based calendar event (kind 31923).
+	KindTimeEvent = 31923
+	// KindRSVP is a NIP-52 calendar RSVP (kind 31925).
+	KindRSVP = 31925
+)
+
+// EventFields carries the event template's structured data.
+type EventFields struct {
+	Title    string
+	Content  string
+	AllDay   bool
+	Start    int64  // unix seconds, or midnight UTC for all-day
+	End      int64  // unix seconds
+	Location string // place or online URL
+	External string // optional external event-page URL
+	Image    string // optional cover (Blossom URL)
+	RRule    string // optional RFC 5545 subset; empty = does not repeat
+	D        string // unique address tag
+}
+
+// EventRootEvent builds a NIP-52 calendar event as a channel thread root.
+// All-day events are kind 31922 (date strings); timed events are kind
+// 31923 (unix timestamps). Visibility and the channel h-tag layer the
+// thread framework on top (ADR 0010/0012).
+func EventRootEvent(h, visibility string, f EventFields, now time.Time) *nostr.Event {
+	kind := KindTimeEvent
+	tags := nostr.Tags{
+		{"h", h},
+		{"visibility", visibility},
+		{"d", f.D},
+		{"title", f.Title},
+	}
+	if f.AllDay {
+		kind = KindDateEvent
+		tags = append(tags,
+			nostr.Tag{"start", dateStr(f.Start)},
+			nostr.Tag{"end", dateStr(f.End)})
+	} else {
+		tags = append(tags,
+			nostr.Tag{"start", fmt.Sprint(f.Start)},
+			nostr.Tag{"end", fmt.Sprint(f.End)})
+	}
+	if f.Location != "" {
+		tags = append(tags, nostr.Tag{"location", f.Location})
+	}
+	if f.External != "" {
+		tags = append(tags, nostr.Tag{"r", f.External})
+	}
+	if f.Image != "" {
+		tags = append(tags, nostr.Tag{"image", f.Image})
+	}
+	if f.RRule != "" {
+		tags = append(tags, nostr.Tag{"rrule", f.RRule})
+	}
+	return &nostr.Event{Kind: kind, Tags: tags, Content: f.Content,
+		CreatedAt: nostr.Timestamp(now.Unix())}
+}
+
+// RSVPEvent builds a kind 31925 RSVP. The d tag is the event id so a
+// member's later answer replaces the earlier one (EVT-08).
+func RSVPEvent(h, eventID, status string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindRSVP,
+		Tags: nostr.Tags{
+			{"h", h},
+			{"d", eventID},
+			{"e", eventID},
+			{"status", status},
+		},
+		CreatedAt: nostr.Timestamp(now.Unix()),
+	}
+}
+
+// CancelEvent builds a kind 1985 'cancelled' label on an event (EVT-06).
+func CancelEvent(h, eventID string, now time.Time) *nostr.Event {
+	return &nostr.Event{Kind: KindLabel,
+		Tags: nostr.Tags{
+			{"h", h},
+			{"L", LabelNamespace},
+			{"l", "cancelled", LabelNamespace},
+			{"e", eventID},
+		},
+		CreatedAt: nostr.Timestamp(now.Unix()),
+	}
+}
+
+func dateStr(unix int64) string {
+	return time.Unix(unix, 0).UTC().Format("2006-01-02")
+}
+
 // --- community profile edits / linktree (docs/nostr/publishing.md § profile edits) ---
 
 const (
