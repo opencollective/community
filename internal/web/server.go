@@ -75,6 +75,7 @@ func New(s *store.Server, log *slog.Logger) (*App, error) {
 			}
 			return out
 		},
+		"add": func(a, b int) int { return a + b },
 	}
 	t, err := template.New("").Funcs(funcs).ParseFS(templateFS, "templates/*.html")
 	if err != nil {
@@ -213,6 +214,8 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("POST /channels/{slug}", a.channelCreate)
 	mux.HandleFunc("GET /channels/{slug}/t/{id}", a.threadView)
 	mux.HandleFunc("POST /channels/{slug}/t/{id}/{action}", a.threadAct)
+
+	mux.HandleFunc("GET /log", a.requireAdmin(a.logPage))
 
 	mux.HandleFunc("GET /settings/community", a.requireAdmin(a.settingsPage))
 	mux.HandleFunc("POST /settings/channels/{slug}", a.requireAdmin(a.settingsChannel))

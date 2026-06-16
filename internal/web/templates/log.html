@@ -1,0 +1,28 @@
+{{template "head" .}}
+<main class="page">
+  <header class="pagehead">
+    <h1>Activity log</h1>
+    <a href="/">Home</a>
+  </header>
+  <p class="hint">
+    <a href="/log">All</a>
+    {{range .Categories}} · <a href="/log?category={{.}}">{{.}}</a>{{end}}
+  </p>
+  {{range .Entries}}
+  <details class="card appcard logentry">
+    <summary>
+      <span class="pill">{{.Category}}</span>
+      {{.Line}}
+      <span class="muted">· {{.Time}}</span>
+    </summary>
+    <pre class="mono">{{.JSON}}</pre>
+  </details>
+  {{else}}
+  <p class="muted">No activity matches.</p>
+  {{end}}
+  <p>
+    {{if .HasPrev}}<a href="/log?page={{add .Page -1}}{{if .Category}}&category={{.Category}}{{end}}{{if .Author}}&author={{.Author}}{{end}}">← Newer</a>{{end}}
+    {{if .HasNext}}<a href="/log?page={{add .Page 1}}{{if .Category}}&category={{.Category}}{{end}}{{if .Author}}&author={{.Author}}{{end}}">Older →</a>{{end}}
+  </p>
+</main>
+{{template "foot" .}}
